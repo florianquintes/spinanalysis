@@ -46,7 +46,7 @@ def save_plot(fname: str, *figures: object, path: str = None, **kwargs: dict) ->
     else:
         fmt = ""
 
-    if type(figures[0]) == list:
+    if isinstance(figures[0], list):
         figures = tuple(*figures)
 
     if len(figures) == 1:

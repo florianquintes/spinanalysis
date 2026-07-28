@@ -86,7 +86,7 @@ def plot_2D(
                 fig, _ = plt.subplots()
 
             # [LABELS]
-            if y.ndim > 1 and not (type(labels) is list):
+            if y.ndim > 1 and not isinstance(labels, list):
                 labels = _get_label_list(y.shape[0], labels)
 
             # [PLOT DATA]
@@ -165,7 +165,7 @@ def shifted_2D(
                 fig = None
 
             # [LABELS]
-            if not type(labels) is list:
+            if not isinstance(labels, list):
                 labels = _get_label_list(Y.shape[0], labels)
 
             # [PLOT DATA]
