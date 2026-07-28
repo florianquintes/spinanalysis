@@ -1,0 +1,14 @@
+{% extends "!layout.html" %}
+
+{% block sidebartitle %}
+  {% set _root_doc = root_doc|default(master_doc) %}
+  <a href="{{ pathto(_root_doc) }}" class="icon icon-home">
+    {{ project }}
+    <span class="version">v{{ release }}</span>
+  </a>
+  <a href="{{ github_url }}" class="icon icon-github">
+    GitHub
+  </a>
+
+  {% include "searchbox.html" %}
+{% endblock %}

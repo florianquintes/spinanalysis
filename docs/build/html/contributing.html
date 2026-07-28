@@ -1,0 +1,211 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contributing &mdash; spinanalysis 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=01f34227"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="License" href="license.html" />
+    <link rel="prev" title="Development" href="development.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+  
+  <a href="index.html" class="icon icon-home">
+    spinanalysis
+    <span class="version">v0.1.0</span>
+  </a>
+  <a href="https://github.com/florianquintes/spinanalysis" class="icon icon-github">
+    GitHub
+  </a>
+
+  
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Contributing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#project-structure">Project Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#development-setup">Development Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#branches">Branches</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pull-requests">Pull Requests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#code-style">Code Style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#documentation">Documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">spinanalysis</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Contributing</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/contributing.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="contributing">
+<h1>Contributing<a class="headerlink" href="#contributing" title="Link to this heading"></a></h1>
+<p>Thank you for contributing to <code class="docutils literal notranslate"><span class="pre">spinanalysis</span></code>. The project is a Python
+framework for loading, processing, plotting, simulating, optimizing, and
+saving electron paramagnetic resonance (EPR) spectra.</p>
+<section id="project-structure">
+<h2>Project Structure<a class="headerlink" href="#project-structure" title="Link to this heading"></a></h2>
+<p>The main package modules are organized by workflow:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">core.py</span></code> orchestrates simulation and optimization.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">epr.py</span></code> defines EPR parameter and workflow objects.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">loading.py</span></code> reads EPR data files.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">processing.py</span></code> transforms and reconstructs spectra.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">plotting.py</span></code> renders spectra and figures.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">saving.py</span></code> writes figures, simulated data, and output files.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">profiles.py</span></code> manages configuration and profile files.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_wrappers.py</span></code> provides internal timing and multiprocessing wrappers.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_interface_handler.py</span></code> provides internal simulation and optimization
+interfaces.</p></li>
+</ul>
+<p>Profile templates and plotting styles are package data under
+<code class="docutils literal notranslate"><span class="pre">src/spinanalysis/data/profiles</span></code>. Changes to a profile schema should update
+the corresponding <code class="docutils literal notranslate"><span class="pre">configspec.ini</span></code> and relevant fixtures under
+<code class="docutils literal notranslate"><span class="pre">tests/data</span></code>.</p>
+</section>
+<section id="development-setup">
+<h2>Development Setup<a class="headerlink" href="#development-setup" title="Link to this heading"></a></h2>
+<p>The project requires Python 3.13 or newer. The repository uses <code class="docutils literal notranslate"><span class="pre">uv</span></code> for
+dependency and environment management.</p>
+<p>Clone the repository and change into its directory:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">git clone https://github.com/florianquintes/spinanalysis.git</span>
+<span class="go">cd spinanalysis</span>
+</pre></div>
+</div>
+<p>Install the locked development environment from the repository root:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">uv sync --dev</span>
+</pre></div>
+</div>
+<p>The package uses a <code class="docutils literal notranslate"><span class="pre">src</span></code> layout. Application code belongs under
+<code class="docutils literal notranslate"><span class="pre">src/spinanalysis</span></code> and tests belong under <code class="docutils literal notranslate"><span class="pre">tests</span></code>.</p>
+</section>
+<section id="branches">
+<h2>Branches<a class="headerlink" href="#branches" title="Link to this heading"></a></h2>
+<p>Create a focused branch for each change and keep unrelated changes separate.
+The repository does not currently document a required branch naming scheme.</p>
+</section>
+<section id="pull-requests">
+<h2>Pull Requests<a class="headerlink" href="#pull-requests" title="Link to this heading"></a></h2>
+<p>Pull requests should explain the change and include the relevant validation
+results. Before opening a pull request, run the checks that apply to the
+change:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">uv run pytest</span>
+<span class="go">uv run ruff check .</span>
+<span class="go">uv build</span>
+</pre></div>
+</div>
+<p>If documentation is changed, also build the documentation as described in the
+Documentation section. Mention known baseline failures or warnings rather
+than presenting them as regressions.</p>
+</section>
+<section id="code-style">
+<h2>Code Style<a class="headerlink" href="#code-style" title="Link to this heading"></a></h2>
+<p>Follow the existing Python and reStructuredText style in the surrounding
+files. Keep importable Python modules under <code class="docutils literal notranslate"><span class="pre">src/spinanalysis</span></code> and add tests
+under <code class="docutils literal notranslate"><span class="pre">tests</span></code>. The repository has no configured formatter or type checker.</p>
+<p>Ruff is the configured code-quality tool, using its default rules:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">uv run ruff check .</span>
+</pre></div>
+</div>
+</section>
+<section id="documentation">
+<h2>Documentation<a class="headerlink" href="#documentation" title="Link to this heading"></a></h2>
+<p>Documentation source files are under <code class="docutils literal notranslate"><span class="pre">docs/source</span></code>. The Sphinx configuration
+adds <code class="docutils literal notranslate"><span class="pre">src</span></code> to the module search path and reads the package version from
+<code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>.</p>
+<p>Build the documentation from the <code class="docutils literal notranslate"><span class="pre">docs</span></code> directory:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">uv run sphinx-build -M html source build</span>
+</pre></div>
+</div>
+<p>The generated HTML is written to <code class="docutils literal notranslate"><span class="pre">docs/build/html</span></code>. Add a title to every
+document included by the root <code class="docutils literal notranslate"><span class="pre">index.rst</span></code> so Sphinx can include it in the
+table of contents.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="development.html" class="btn btn-neutral float-left" title="Development" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="license.html" class="btn btn-neutral float-right" title="License" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Florian Quintes.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

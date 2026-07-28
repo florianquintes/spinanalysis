@@ -1,0 +1,58 @@
+## Colors: for the color values below, you can either use
+##     - a Matplotlib color string, such as r, k, or b
+##     - an RGB tuple, such as (1.0, 0.5, 0.0)
+##     - a double-quoted hex string, such as "#ff00ff".
+##       The unquoted string ff00ff is also supported for backward
+##       compatibility, but is discouraged.
+##     - a scalar grayscale intensity such as 0.75
+##     - a legal html color name, e.g., red, blue, darkslategray
+##
+## String values may optionally be enclosed in double quotes, which allows
+## using the comment character # in the string.
+##
+## This file (and other style files) must be encoded as utf-8.
+##
+## Matplotlib configuration are currently divided into following parts:
+##     - BACKENDS
+##     - LINES
+##     - PATCHES
+##     - HATCHES
+##     - BOXPLOT
+##     - FONT
+##     - TEXT
+##     - LaTeX
+##     - AXES
+##     - DATES
+##     - TICKS
+##     - GRIDS
+##     - LEGEND
+##     - FIGURE
+##     - IMAGES
+##     - CONTOUR PLOTS
+##     - ERRORBAR PLOTS
+##     - HISTOGRAM PLOTS
+##     - SCATTER PLOTS
+##     - AGG RENDERING
+##     - PATHS
+##     - SAVING FIGURES
+##     - INTERACTIVE KEYMAPS
+##     - ANIMATION
+
+##### CONFIGURATION BEGINS HERE
+
+## ***************************************************************************
+## * EASYPAIRSPIN SPECIAL SETTINGS                                           *
+## ***************************************************************************
+
+percentage_mode: True
+xlim: 0., 0.
+ylim: 0., 0.
+zlim: 0., 0.
+xlabel: "Magnetic Field"
+ylabel: "Time"
+zlabel: "Intensity"
+show_title: False
+title: ""
+legend: True
+colorbar: True
+

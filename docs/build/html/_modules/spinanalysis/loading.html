@@ -1,0 +1,921 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>spinanalysis.loading &mdash; spinanalysis 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            spinanalysis
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">spinanalysis</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">spinanalysis.loading</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for spinanalysis.loading</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">© M. Sc. Florian Quintes, 2021-2022</span>
+
+<span class="sd">@contact: florian.quintes@pc.uni.freiburg.de</span>
+
+<span class="sd">@author: Florian Quintes</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">glob</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tuple</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">loadmat</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">spinanalysis._utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">strtobool</span>
+
+
+<div class="viewcode-block" id="get_full_path">
+<a class="viewcode-back" href="../../api.html#spinanalysis.loading.get_full_path">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_full_path</span><span class="p">(</span><span class="n">directory_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">start_directory</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the full path of a given directory. Search starts  at home directory.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    directory_name : str</span>
+<span class="sd">        Name of the directory whose path is to be found.</span>
+<span class="sd">    start_directory : str, optional</span>
+<span class="sd">        Directory at which the search starts. If given, the perfomance</span>
+<span class="sd">        increases very sharply. The default is None.</span>
+
+<span class="sd">        Recommended.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    full_path : str</span>
+<span class="sd">        The full path of the directory.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">start_directory</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">start_directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~&quot;</span><span class="p">),</span> <span class="s2">&quot;**&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">start_directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~&quot;</span><span class="p">),</span> <span class="n">start_directory</span><span class="p">,</span> <span class="s2">&quot;**&quot;</span><span class="p">)</span>
+
+    <span class="n">all_subdirectories</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">start_directory</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">full_path</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">all_subdirectories</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">directory_name</span><span class="p">):</span>
+            <span class="n">full_path</span> <span class="o">=</span> <span class="n">path</span>
+
+    <span class="k">return</span> <span class="n">full_path</span></div>
+
+
+
+<div class="viewcode-block" id="get_DSC_parameters">
+<a class="viewcode-back" href="../../api.html#spinanalysis.loading.get_DSC_parameters">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_DSC_parameters</span><span class="p">(</span><span class="n">path_to_folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract all parameters from the DSC File.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path_to_folder : str</span>
+<span class="sd">        Full path to the folder with .DSC and .DTA file. Files and path must</span>
+<span class="sd">        have the same basename (BRUKER STANDARD).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    DSC_parameters : dict</span>
+<span class="sd">        Dictionary with all parameters. Key is the same as in .DSC.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">DSC_parameters</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="n">basename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path_to_folder</span><span class="p">)</span>  <span class="c1"># Foldername == Filename</span>
+    <span class="n">DSC_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path_to_folder</span><span class="p">,</span> <span class="n">basename</span> <span class="o">+</span> <span class="s2">&quot;.DSC&quot;</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">DSC_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">file</span><span class="o">.</span><span class="n">readlines</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">((</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="s2">&quot;#&quot;</span><span class="p">,</span> <span class="s2">&quot;&#39;&quot;</span><span class="p">)):</span>
+                <span class="k">pass</span>
+            <span class="k">elif</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;FTAcqModeSlct&quot;</span><span class="p">):</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                <span class="n">DSC_parameters</span><span class="p">[</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">DSC_parameters</span><span class="p">[</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">convert_parameter_type</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+                    <span class="k">pass</span>
+
+    <span class="n">DSC_parameters</span><span class="p">[</span><span class="s2">&quot;path_to_folder&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">path_to_folder</span>
+
+    <span class="k">return</span> <span class="n">DSC_parameters</span></div>
+
+
+
+<div class="viewcode-block" id="convert_parameter_type">
+<a class="viewcode-back" href="../../api.html#spinanalysis.loading.convert_parameter_type">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">convert_parameter_type</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert the type of a given string to bool, int or float if possible.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    value : str</span>
+<span class="sd">        Parameter string which should be converted.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    value : bool or int or float or str</span>
+<span class="sd">        Parameter as bool, int or float. If none is possible, the stripped</span>
+<span class="sd">        string will be returned.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">strtobool</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">value</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span></div>
+
+
+
+<div class="viewcode-block" id="get_byte_mode">
+<a class="viewcode-back" href="../../api.html#spinanalysis.loading.get_byte_mode">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_byte_mode</span><span class="p">(</span><span class="n">DSC_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">data_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;IRFMT&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the used byte mode of the BRUKER BES3T-data.</span>
+
+<span class="sd">    For more information about BES3T go to BRUKER website or easyspin @ github.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    DSC_dict : dict</span>
+<span class="sd">        Dictionary with all parameters. Key is the same as in .DSC.</span>
+<span class="sd">    data_key : str, optional</span>
+<span class="sd">        Key for the data array. Either &#39;IRFMT&#39; or &#39;IIFMT&#39;.</span>
+<span class="sd">        The default is &#39;IRFMT&#39;.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        Raised if key value is not C, S, I, F or D.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    byte_mode : str</span>
+<span class="sd">        Return the  used byte mode as one string for</span>
+<span class="sd">        numpy.fromfile(dtype=byte_mode).</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">byte_mode</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">DSC_dict</span><span class="p">[</span><span class="s2">&quot;BSEQ&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;BIG&quot;</span><span class="p">:</span>
+        <span class="n">byte_mode</span> <span class="o">+=</span> <span class="s2">&quot;&gt;&quot;</span>
+    <span class="k">elif</span> <span class="n">DSC_dict</span><span class="p">[</span><span class="s2">&quot;BSEQ&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;LIT&quot;</span><span class="p">:</span>
+        <span class="n">byte_mode</span> <span class="o">+=</span> <span class="s2">&quot;&lt;&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">byte_mode</span> <span class="o">+=</span> <span class="s2">&quot;&gt;&quot;</span>
+
+    <span class="k">if</span> <span class="n">DSC_dict</span><span class="p">[</span><span class="n">data_key</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;C&quot;</span><span class="p">,</span> <span class="s2">&quot;S&quot;</span><span class="p">,</span> <span class="s2">&quot;I&quot;</span><span class="p">):</span>
+        <span class="n">byte_mode</span> <span class="o">+=</span> <span class="s2">&quot;i&quot;</span>
+        <span class="k">if</span> <span class="n">DSC_dict</span><span class="p">[</span><span class="n">data_key</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;I&quot;</span><span class="p">:</span>
+            <span class="n">byte_mode</span> <span class="o">+=</span> <span class="s2">&quot;4&quot;</span>
+        <span class="k">elif</span> <span class="n">DSC_dict</span><span class="p">[</span><span class="n">data_key</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;S&quot;</span><span class="p">:</span>
+            <span class="n">byte_mode</span> <span class="o">+=</span> <span class="s2">&quot;2&quot;</span>
+    <span class="k">elif</span> <span class="n">DSC_dict</span><span class="p">[</span><span class="n">data_key</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;F&quot;</span><span class="p">,</span> <span class="s2">&quot;D&quot;</span><span class="p">):</span>
+        <span class="n">byte_mode</span> <span class="o">+=</span> <span class="s2">&quot;f&quot;</span>
+        <span class="k">if</span> <span class="n">DSC_dict</span><span class="p">[</span><span class="n">data_key</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;D&quot;</span><span class="p">:</span>
+            <span class="n">byte_mode</span> <span class="o">+=</span> <span class="s2">&quot;8&quot;</span>
+    <span class="k">elif</span> <span class="n">DSC_dict</span><span class="p">[</span><span class="n">data_key</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;A&quot;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Can&#39;t read BES3T data in ASCII format!&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown value for keyword </span><span class="si">{}</span><span class="s2"> in .DSC file!&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">data_key</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">byte_mode</span></div>
+
+
+
+<div class="viewcode-block" id="load_data_vector">
+<a class="viewcode-back" href="../../api.html#spinanalysis.loading.load_data_vector">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_data_vector</span><span class="p">(</span><span class="n">DSC_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load the binary intensity vector(s) from BRUKER BES3T-File.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    DSC_dict : dict</span>
+<span class="sd">        Dictionary with all parameters. Key is the same as in .DSC.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        Will be raised if IKKF isn&#39;t CPLX or REAL or if the dimension isn&#39;t 1</span>
+<span class="sd">        or 2.</span>
+<span class="sd">    KeyError</span>
+<span class="sd">        Raised if an axis is given but not the corresponding number of points.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    cmplx_data_vector : np.array, np.complex128</span>
+<span class="sd">        Real and imaginary part of the measured intensities.  If no imaginary</span>
+<span class="sd">        part is measured, zeroes will be inserted.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">get_data_dimension</span><span class="p">(</span><span class="n">DSC_dict</span><span class="p">)</span>
+    <span class="n">byte_mode</span> <span class="o">=</span> <span class="n">get_byte_mode</span><span class="p">(</span><span class="n">DSC_dict</span><span class="p">)</span>
+
+    <span class="n">DTA_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">DSC_dict</span><span class="p">[</span><span class="s2">&quot;path_to_folder&quot;</span><span class="p">],</span> <span class="n">DSC_dict</span><span class="p">[</span><span class="s2">&quot;TITL&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.DTA&quot;</span><span class="p">)</span>
+
+    <span class="n">data_vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="n">DTA_file</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">byte_mode</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">DSC_dict</span><span class="p">[</span><span class="s2">&quot;IKKF&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;CPLX&quot;</span><span class="p">:</span>
+        <span class="n">data_vector_real</span> <span class="o">=</span> <span class="n">data_vector</span><span class="p">[</span><span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">data_vector_imag</span> <span class="o">=</span> <span class="n">data_vector</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">DSC_dict</span><span class="p">[</span><span class="s2">&quot;IKKF&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;REAL&quot;</span><span class="p">:</span>
+        <span class="n">data_vector_real</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">data_vector</span>
+        <span class="n">data_vector_imag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data_vector</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown value for keyword IKKF!&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">DSC_dict</span><span class="p">[</span><span class="s2">&quot;dimensions&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;XPTS&quot;</span> <span class="ow">and</span> <span class="s2">&quot;YPTS&quot;</span> <span class="ow">in</span> <span class="n">DSC_dict</span><span class="p">:</span>
+            <span class="n">data_vector_real</span> <span class="o">=</span> <span class="n">data_vector_real</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">DSC_dict</span><span class="p">[</span><span class="s2">&quot;YPTS&quot;</span><span class="p">],</span> <span class="n">DSC_dict</span><span class="p">[</span><span class="s2">&quot;XPTS&quot;</span><span class="p">])</span>
+            <span class="p">)</span>
+            <span class="n">data_vector_imag</span> <span class="o">=</span> <span class="n">data_vector_imag</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">DSC_dict</span><span class="p">[</span><span class="s2">&quot;YPTS&quot;</span><span class="p">],</span> <span class="n">DSC_dict</span><span class="p">[</span><span class="s2">&quot;XPTS&quot;</span><span class="p">])</span>
+            <span class="p">)</span>
+
+        <span class="k">elif</span> <span class="s2">&quot;XPTS&quot;</span> <span class="ow">and</span> <span class="s2">&quot;ZPTS&quot;</span> <span class="ow">in</span> <span class="n">DSC_dict</span><span class="p">:</span>
+            <span class="n">data_vector_real</span> <span class="o">=</span> <span class="n">data_vector_real</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">DSC_dict</span><span class="p">[</span><span class="s2">&quot;ZPTS&quot;</span><span class="p">],</span> <span class="n">DSC_dict</span><span class="p">[</span><span class="s2">&quot;XPTS&quot;</span><span class="p">])</span>
+            <span class="p">)</span>
+            <span class="n">data_vector_imag</span> <span class="o">=</span> <span class="n">data_vector_imag</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">DSC_dict</span><span class="p">[</span><span class="s2">&quot;ZPTS&quot;</span><span class="p">],</span> <span class="n">DSC_dict</span><span class="p">[</span><span class="s2">&quot;XPTS&quot;</span><span class="p">])</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Can&#39;t find needed keys from  (XPTS, YPTS, ZPTS)!&quot;</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">DSC_dict</span><span class="p">[</span><span class="s2">&quot;dimensions&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Can&#39;t handle dimensions </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">DSC_dict</span><span class="p">[</span><span class="s2">&quot;dimensions&quot;</span><span class="p">]))</span>
+
+    <span class="n">cmplx_data_vector</span> <span class="o">=</span> <span class="n">data_vector_real</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">data_vector_imag</span>
+
+    <span class="k">return</span> <span class="n">cmplx_data_vector</span><span class="o">.</span><span class="n">T</span></div>
+
+
+
+<div class="viewcode-block" id="load_axis_vector">
+<a class="viewcode-back" href="../../api.html#spinanalysis.loading.load_axis_vector">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_axis_vector</span><span class="p">(</span><span class="n">axis</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">DSC_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load the points of a given axis (x, y, z).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    axis : str</span>
+<span class="sd">        Name of the axis. Needs to start with x,X,y,Y or z,Z. E. g.: x-axis.</span>
+<span class="sd">    DSC_dict : dict</span>
+<span class="sd">        Dictionary with all parameters. Key is the same as in .DSC.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        Will be raised if the given axis doesn&#39;t starts with an allowed</span>
+<span class="sd">        character.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    axis_vector : np.array</span>
+<span class="sd">        Array with all axis points.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">axis</span> <span class="o">=</span> <span class="n">axis</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">axis</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;X&quot;</span><span class="p">):</span>
+        <span class="n">axis</span> <span class="o">=</span> <span class="s2">&quot;X&quot;</span>
+    <span class="k">elif</span> <span class="n">axis</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;Y&quot;</span><span class="p">):</span>
+        <span class="n">axis</span> <span class="o">=</span> <span class="s2">&quot;Y&quot;</span>
+    <span class="k">elif</span> <span class="n">axis</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;Z&quot;</span><span class="p">):</span>
+        <span class="n">axis</span> <span class="o">=</span> <span class="s2">&quot;Z&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Axis needs to start with &#39;x&#39;, &#39;y&#39; or &#39;z&#39;!&quot;</span><span class="p">)</span>
+
+    <span class="n">axis_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="n">DSC_dict</span><span class="p">[</span><span class="s2">&quot;path_to_folder&quot;</span><span class="p">],</span> <span class="n">DSC_dict</span><span class="p">[</span><span class="s2">&quot;TITL&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="n">axis</span> <span class="o">+</span> <span class="s2">&quot;GF&quot;</span>
+    <span class="p">)</span>
+    <span class="n">data_key</span> <span class="o">=</span> <span class="n">axis</span> <span class="o">+</span> <span class="s2">&quot;FMT&quot;</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">byte_mode</span> <span class="o">=</span> <span class="n">get_byte_mode</span><span class="p">(</span><span class="n">DSC_dict</span><span class="p">,</span> <span class="n">data_key</span><span class="o">=</span><span class="n">data_key</span><span class="p">)</span>
+        <span class="n">axis_vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="n">axis_file</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">byte_mode</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">FileNotFoundError</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">minimum</span> <span class="o">=</span> <span class="n">DSC_dict</span><span class="p">[</span><span class="n">axis</span> <span class="o">+</span> <span class="s2">&quot;MIN&quot;</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">axis_vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">width</span> <span class="o">=</span> <span class="n">DSC_dict</span><span class="p">[</span><span class="n">axis</span> <span class="o">+</span> <span class="s2">&quot;WID&quot;</span><span class="p">]</span>
+            <span class="n">points</span> <span class="o">=</span> <span class="n">DSC_dict</span><span class="p">[</span><span class="n">axis</span> <span class="o">+</span> <span class="s2">&quot;PTS&quot;</span><span class="p">]</span>
+            <span class="n">axis_vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">minimum</span><span class="p">,</span> <span class="n">minimum</span> <span class="o">+</span> <span class="n">width</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">axis_vector</span></div>
+
+
+
+<div class="viewcode-block" id="get_data_dimension">
+<a class="viewcode-back" href="../../api.html#spinanalysis.loading.get_data_dimension">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_data_dimension</span><span class="p">(</span><span class="n">DSC_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the dimension of the measured spectrum (1d/2d).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    DSC_dict : dict</span>
+<span class="sd">        Dictionary with all parameters. Key is the same as in .DSC.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">        The dimension will be safed in the given dictionary to the key</span>
+<span class="sd">        &#39;dimensions&#39;.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dim</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;XTYP&quot;</span><span class="p">,</span> <span class="s2">&quot;YTYP&quot;</span><span class="p">,</span> <span class="s2">&quot;ZTYP&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">DSC_dict</span><span class="p">[</span><span class="n">axis</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;NODATA&quot;</span><span class="p">:</span>
+            <span class="n">dim</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="n">DSC_dict</span><span class="p">[</span><span class="s2">&quot;dimensions&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dim</span>
+
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="load_epr_bruker_bes3t">
+<a class="viewcode-back" href="../../api.html#spinanalysis.loading.load_epr_bruker_bes3t">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_epr_bruker_bes3t</span><span class="p">(</span>
+    <span class="n">folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">start_directory</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load the whole dataset from BRUKER BES3T data folder into numpy.arrays.</span>
+
+<span class="sd">    Time axis will be rescaled for OOP-ESEEM experiments, if &#39;FTAcqModeSlct&#39;</span>
+<span class="sd">    is &#39;Run from Tables&#39;.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    folder : str</span>
+<span class="sd">        Name of the data folder with the corresponding data files.</span>
+<span class="sd">    start_directory : str, optional</span>
+<span class="sd">        Give the path starting from your home folder which the search for the</span>
+<span class="sd">        data folder should start at. The default is None.</span>
+<span class="sd">        E. g.: data is at /home/cooluser/nice/data/this_folder</span>
+<span class="sd">        and you know, that all your data is in /home/cooluser/nice/*, then you</span>
+<span class="sd">        can give this start_directory with start_directory=&#39;nice&#39;. So</span>
+<span class="sd">        the function call would be:</span>
+<span class="sd">            load_epr_bruker_bes3t(this_folder, &#39;nice&#39;)</span>
+
+<span class="sd">        Recommended:</span>
+<span class="sd">            Without this parameter, the search for the right folder will be</span>
+<span class="sd">            much longer.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    axis : tuple</span>
+<span class="sd">        Tuple of all axis vectors as three numpy.arrays (x, y, z).</span>
+<span class="sd">    data : np.array, np.complex128</span>
+<span class="sd">        All intensity values as one complex numpy.array.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">get_full_path</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">start_directory</span><span class="p">)</span>
+    <span class="n">DSC_parameters</span> <span class="o">=</span> <span class="n">get_DSC_parameters</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="n">load_data_vector</span><span class="p">(</span><span class="n">DSC_parameters</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">load_axis_vector</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">DSC_parameters</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">DSC_parameters</span><span class="p">[</span><span class="s2">&quot;FTAcqModeSlct&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Tables&quot;</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">/=</span> <span class="mi">2</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">load_axis_vector</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">DSC_parameters</span><span class="p">)</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">load_axis_vector</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="n">DSC_parameters</span><span class="p">)</span>
+    <span class="n">axis</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">axis</span><span class="p">,</span> <span class="n">data</span></div>
+
+
+
+<div class="viewcode-block" id="load_epr_ESP_transient">
+<a class="viewcode-back" href="../../api.html#spinanalysis.loading.load_epr_ESP_transient">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_epr_ESP_transient</span><span class="p">(</span>
+    <span class="n">folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">start_directory</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load data from a transient epr experiment measured with ESP380E.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    folder : str</span>
+<span class="sd">        Name of the folder with all data files. Data files need to have the</span>
+<span class="sd">        same basename as folder, e. g. &#39;/home/user/exp_1/exp_1.001&#39;.</span>
+<span class="sd">    start_directory : str, optional</span>
+<span class="sd">        Give the path starting from your home folder which the search for</span>
+<span class="sd">        the data folder should start at. The default is None.</span>
+<span class="sd">        E. g.: data is at /home/cooluser/nice/data/this_folder</span>
+<span class="sd">        and you know, that all your data is in /home/cooluser/nice/*, then you</span>
+<span class="sd">        can give this start_directory with start_directory=&#39;nice&#39;. So</span>
+<span class="sd">        the function call would be:</span>
+<span class="sd">            load_epr_ESP_transient(this_folder, &#39;nice&#39;)</span>
+
+<span class="sd">        Recommended:</span>
+<span class="sd">            Without this parameter, the search for the right folder will be</span>
+<span class="sd">            much longer.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    axis : tuple</span>
+<span class="sd">        Return a tuple with all axis vectors  as two numpy.arrays</span>
+<span class="sd">        (magnetic_field, time).</span>
+<span class="sd">    data : np.array, np.complex128</span>
+<span class="sd">        All intensity values as one complex numpy.array. Imaginary part is</span>
+<span class="sd">        always 0.</span>
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">get_full_path</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">start_directory</span><span class="p">)</span>
+    <span class="c1"># tr_info = get_transient_info(path)</span>
+    <span class="c1"># time_axis = np.linspace(0, tr_info[0], tr_info[1])</span>
+    <span class="c1"># points = int((abs(tr_info[3] - tr_info[2])) / tr_info[4] + 1)</span>
+    <span class="c1"># magnetic_field = np.linspace(tr_info[2], tr_info[3], points)</span>
+    <span class="c1"># axis = (magnetic_field, time_axis)</span>
+
+    <span class="c1"># dimensions = (magnetic_field.shape[0], time_axis.shape[0])</span>
+    <span class="n">axis</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">get_transient_data</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">axis</span><span class="p">,</span> <span class="n">data</span></div>
+
+
+
+<div class="viewcode-block" id="get_transient_info">
+<a class="viewcode-back" href="../../api.html#spinanalysis.loading.get_transient_info">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_transient_info</span><span class="p">(</span><span class="n">fpath</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get all informations about the time axis and magnetic field vector from the</span>
+<span class="sd">    .info file.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fpath : str</span>
+<span class="sd">        Full path to the folder with the experimental data.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    KeyError</span>
+<span class="sd">        Raised if section &#39;MAGNETIC FIELD&#39; or &#39;TRANSIENT&#39; could not be found in</span>
+<span class="sd">        .info file. Take care that the sections must be all upper case.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    transient_info : tuple</span>
+<span class="sd">        Contains the needed informations in the following order (time_length,</span>
+<span class="sd">        time_points, mag_field_start, mag_field_stop, mag_field_step).</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fbasename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
+    <span class="n">fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">fbasename</span> <span class="o">+</span> <span class="s2">&quot;.info&quot;</span><span class="p">)</span>
+    <span class="n">transient_info</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="mi">5</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">info_file</span><span class="p">:</span>
+        <span class="n">current_section</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">info_file</span><span class="o">.</span><span class="n">readlines</span><span class="p">():</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">line</span> <span class="o">==</span> <span class="p">[]:</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">isupper</span><span class="p">():</span>
+                    <span class="n">current_section</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">current_section</span> <span class="o">==</span> <span class="s2">&quot;MAGNETIC&quot;</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Start:&quot;</span><span class="p">:</span>
+                            <span class="n">transient_info</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                        <span class="k">elif</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Stop:&quot;</span><span class="p">:</span>
+                            <span class="n">transient_info</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                        <span class="k">elif</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Step:&quot;</span><span class="p">:</span>
+                            <span class="n">transient_info</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">pass</span>
+                    <span class="k">elif</span> <span class="n">current_section</span> <span class="o">==</span> <span class="s2">&quot;TRANSIENT&quot;</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Points:&quot;</span><span class="p">:</span>
+                            <span class="n">transient_info</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                        <span class="k">elif</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Length:&quot;</span><span class="p">:</span>
+                            <span class="n">transient_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">pass</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">pass</span>
+
+            <span class="k">if</span> <span class="kc">None</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">transient_info</span><span class="p">:</span>
+                <span class="k">break</span>
+
+    <span class="k">if</span> <span class="n">transient_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Couldn&#39;t find section &#39;TRANSIENT&#39; in .info file!&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">transient_info</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Couldn&#39;t find section &#39;MAGNETIC FIELD&#39; in .info file!&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">transient_info</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="get_transient_data">
+<a class="viewcode-back" href="../../api.html#spinanalysis.loading.get_transient_data">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_transient_data</span><span class="p">(</span><span class="n">fpath</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the measured intensities of the whole spectrum from a transient epr</span>
+<span class="sd">    experiment measured by ESP380E.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fpath : str</span>
+<span class="sd">        Full path to the folder with the experimental data.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    axis : tuple</span>
+<span class="sd">        Return a tuple with all axis vectors  as two numpy.arrays</span>
+<span class="sd">        (magnetic_field, time).</span>
+<span class="sd">    cmplx_data_vector : np.array, np.complex128</span>
+<span class="sd">        Measured real intensities. All imaginary parts are zero.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">data_vector_real</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">magnetic_field</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">file_found</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">max_digits</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">while</span> <span class="ow">not</span> <span class="n">file_found</span><span class="p">:</span>
+        <span class="n">fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">fpath</span><span class="p">,</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;.{0:0&gt;</span><span class="si">{1}</span><span class="s2">s}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">max_digits</span><span class="p">)),</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+            <span class="n">file_found</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">max_digits</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">max_digits</span> <span class="o">&gt;=</span> <span class="mi">10</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s2">&quot;No first ESP file could be found!&quot;</span><span class="p">)</span>
+
+    <span class="n">file_exists</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">file</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">while</span> <span class="n">file_exists</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">file</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="p">(</span><span class="n">field_point</span><span class="p">,</span> <span class="n">time_axis</span><span class="p">),</span> <span class="n">data</span> <span class="o">=</span> <span class="n">read_single_transient_file</span><span class="p">(</span>
+                    <span class="n">fpath</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">max_digits</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="kc">True</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">field_point</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">read_single_transient_file</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">max_digits</span><span class="p">)</span>
+            <span class="n">file</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+            <span class="n">file_exists</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">data_vector_real</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="n">magnetic_field</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">field_point</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+    <span class="n">magnetic_field</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">magnetic_field</span><span class="p">)</span>
+    <span class="n">sorting</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">magnetic_field</span><span class="p">)</span>
+    <span class="n">magnetic_field</span> <span class="o">=</span> <span class="n">magnetic_field</span><span class="p">[</span><span class="n">sorting</span><span class="p">]</span>
+    <span class="n">cmplx_data_vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data_vector_real</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex128</span><span class="p">)</span>
+    <span class="n">cmplx_data_vector</span> <span class="o">=</span> <span class="n">cmplx_data_vector</span><span class="p">[</span><span class="n">sorting</span><span class="p">]</span>
+    <span class="n">axis</span> <span class="o">=</span> <span class="p">(</span><span class="n">magnetic_field</span><span class="p">,</span> <span class="n">time_axis</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">axis</span><span class="p">,</span> <span class="n">cmplx_data_vector</span><span class="o">.</span><span class="n">T</span></div>
+
+
+
+<div class="viewcode-block" id="read_single_transient_file">
+<a class="viewcode-back" href="../../api.html#spinanalysis.loading.read_single_transient_file">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_single_transient_file</span><span class="p">(</span>
+    <span class="n">fpath</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">filenumber</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">digits</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">time</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the measured intensities of a single field point from a transient epr</span>
+<span class="sd">    experiment measured by ESP380E.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fpath : str</span>
+<span class="sd">        Full path to the folder with the experimental data.</span>
+<span class="sd">    filenumber : int</span>
+<span class="sd">        Number of the dataset for the magnetic field point e. g. 003.</span>
+<span class="sd">    digits : int</span>
+<span class="sd">        Number of digits from the highest filenumber (ESP380E has an increasing</span>
+<span class="sd">        number as fileextension for each magnetic field point e. g. data.001).</span>
+<span class="sd">    time : bool, optional</span>
+<span class="sd">        If True, the time axis will be returned.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    field : float</span>
+<span class="sd">        Magnetic field point.</span>
+<span class="sd">    time_axis : np.array</span>
+<span class="sd">        Linear time axis.</span>
+<span class="sd">    data_vector : np.array</span>
+<span class="sd">        Measured intensities.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fbasename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
+    <span class="n">ending</span> <span class="o">=</span> <span class="s2">&quot;.{0:0&gt;</span><span class="si">{1}</span><span class="s2">s}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">filenumber</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">digits</span><span class="p">))</span>
+    <span class="n">fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">fbasename</span> <span class="o">+</span> <span class="n">ending</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">data_vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">skip_header</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+        <span class="n">data_vector</span> <span class="o">=</span> <span class="n">data_vector</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="n">data_vector</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">readlines</span><span class="p">()):</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                    <span class="n">data_vector</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+            <span class="n">data_vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data_vector</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex128</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">readlines</span><span class="p">()):</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;B0&quot;</span><span class="p">):</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                <span class="n">field</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">time</span><span class="p">:</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                <span class="n">points</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">start</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+                <span class="n">stop</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+                <span class="n">time_axis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+                <span class="k">break</span>
+
+    <span class="k">if</span> <span class="n">time</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">time_axis</span><span class="p">),</span> <span class="n">data_vector</span>
+
+    <span class="k">return</span> <span class="n">field</span><span class="p">,</span> <span class="n">data_vector</span></div>
+
+
+
+<div class="viewcode-block" id="load_simulated_data">
+<a class="viewcode-back" href="../../api.html#spinanalysis.loading.load_simulated_data">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_simulated_data</span><span class="p">(</span>
+    <span class="n">folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">start_directory</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load the simulated data from EasyPairSpin or data saved with</span>
+<span class="sd">    saving.save_simulation(). Using numpy.loadtxt().</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    folder : str</span>
+<span class="sd">        Name of the data folder with the corresponding data files.</span>
+<span class="sd">    start_directory : str, optional</span>
+<span class="sd">        Give the path starting from your home folder which the search for</span>
+<span class="sd">        the data folder should start at. The default is None.</span>
+<span class="sd">        E. g.: data is at /home/cooluser/nice/data/this_folder</span>
+<span class="sd">        and you know, that all your data is in /home/cooluser/nice/*, then you</span>
+<span class="sd">        can give this start_directory with start_directory=&#39;cooluser/nice&#39;. So</span>
+<span class="sd">        the function call would be:</span>
+<span class="sd">            load_simulated_data(this_folder, &#39;cooluser/nice&#39;)</span>
+
+<span class="sd">        Recommended:</span>
+<span class="sd">            Without this parameter, the search for the right folder</span>
+<span class="sd">            will be much longer.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    x : np.array</span>
+<span class="sd">        Axis vector for the x-axis.</span>
+<span class="sd">    y : np.array</span>
+<span class="sd">        Axis vector for the y-axis. Only returned, if the simulated data is 2d.</span>
+<span class="sd">    intensity : np.array, np.complex128</span>
+<span class="sd">        Simulated intensities. Either 1d or 2d.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">get_full_path</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">start_directory</span><span class="p">)</span>
+
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;x_axis.txt&quot;</span><span class="p">))</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">intensity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;intensity.txt&quot;</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="n">intensity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;intensity.txt&quot;</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex_</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;y_axis.txt&quot;</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">intensity</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">intensity</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="load_matlab">
+<a class="viewcode-back" href="../../api.html#spinanalysis.loading.load_matlab">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_matlab</span><span class="p">(</span>
+    <span class="n">folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">start_directory</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">field</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;field&quot;</span><span class="p">,</span>
+    <span class="n">signal</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;signal&quot;</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load EPR data from a matlab data file .mat</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    folder : str</span>
+<span class="sd">        Name of the data folder with the corresponding data files.</span>
+<span class="sd">    start_directory : str, optional</span>
+<span class="sd">        Give the path starting from your home folder which the search for</span>
+<span class="sd">        the data folder should start at. The default is None.</span>
+<span class="sd">        E. g.: data is at /home/cooluser/nice/data/this_folder</span>
+<span class="sd">        and you know, that all your data is in /home/cooluser/nice/*, then you</span>
+<span class="sd">        can give this start_directory with start_directory=&#39;cooluser/nice&#39;. So</span>
+<span class="sd">        the function call would be:</span>
+<span class="sd">            load_simulated_data(this_folder, &#39;cooluser/nice&#39;)</span>
+<span class="sd">    field : str, optional</span>
+<span class="sd">        Name of the field array. The default is &#39;field&#39;.</span>
+<span class="sd">    signal : str, optional</span>
+<span class="sd">        Name of the signal array. The default is &#39;signal&#39;.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    axis : np.array</span>
+<span class="sd">        Tuple of np.array containing the x and y axis.</span>
+<span class="sd">    data : np.array</span>
+<span class="sd">        np.array with the measured intensities.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">get_full_path</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">start_directory</span><span class="p">)</span>
+    <span class="n">mat_data</span> <span class="o">=</span> <span class="n">loadmat</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">mat_data</span><span class="p">[</span><span class="n">field</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">mat_data</span><span class="p">[</span><span class="n">signal</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="n">axis</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">axis</span><span class="p">,</span> <span class="n">data</span></div>
+
+
+
+<div class="viewcode-block" id="load_txt">
+<a class="viewcode-back" href="../../api.html#spinanalysis.loading.load_txt">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_txt</span><span class="p">(</span>
+    <span class="n">folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">start_directory</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load EPR data from a .txt file.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    folder : str</span>
+<span class="sd">        Name of the data folder with the corresponding data files.</span>
+<span class="sd">    start_directory : str, optional</span>
+<span class="sd">        Give the path starting from your home folder which the search for</span>
+<span class="sd">        the data folder should start at. The default is &#39;&#39;.</span>
+<span class="sd">        E. g.: data is at /home/cooluser/nice/data/this_folder</span>
+<span class="sd">        and you know, that all your data is in /home/cooluser/nice/*, then you</span>
+<span class="sd">        can give this start_directory with start_directory=&#39;cooluser/nice&#39;. So</span>
+<span class="sd">        the function call would be:</span>
+<span class="sd">            load_simulated_data(this_folder, &#39;cooluser/nice&#39;)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    axis : np.array</span>
+<span class="sd">        Tuple of np.array containing the x and y axis.</span>
+<span class="sd">    data : np.array</span>
+<span class="sd">        np.array with the measured intensities.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">get_full_path</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">start_directory</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">unpack</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">unpack</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">axis</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">axis</span><span class="p">,</span> <span class="n">data</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Florian Quintes.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
