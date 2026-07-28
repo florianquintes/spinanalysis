@@ -18,10 +18,6 @@ from oop_eseem.opossum import (
 )
 from teacups.simulations import teacups
 from static_radical_pair.radpair import do_simulation_multicore
-import sys
-import os
-import datetime
-import logging
 import numpy as np
 
 version = "v0.1.0"
@@ -30,84 +26,31 @@ version = "v0.1.0"
 mkl.set_num_threads(1)
 
 
-def start_log() -> None:
-    # TODO
-    """
-    Diese Funktion soll mal Log-Dateien während der Nutzung anlegen.
-    Aktuell nicht nutzbar! Reine Baustelle!
-    """
-    date = datetime.datetime.now()
-
-    date = date.strftime("%d_%m_%Y__%H:%M:%S")
-    session_name = "EasyPairSpin_Session_at_" + date + ".log"
-    log_path = os.path.join(sys.prefix, "easypairspin", "logs")
-
-    if not os.path.exists(log_path):
-        os.makedirs(log_path)
-
-    logfile_name = os.path.join(log_path, session_name)
-
-    fmt = "{asctime} - [{levelname:8}] - {module} {funcName} - {message}"
-    dfmt = "%d/%m/%Y %H:%M:%S"
-
-    logging.basicConfig(
-        filename=logfile_name,
-        style="{",
-        format=fmt,
-        datefmt=dfmt,
-        level=logging.DEBUG,
-    )
-    logging.info("Log startet")
-    return None
-
-
 def simulate(Sys: object, Exp: object, SimOpt: object) -> np.ndarray:
-    # TODO Hinschreiben, welche Simulationen möglich sind + Paper.
-    """
-    Do various simulations with (spinpolarized) radical pairs.
+    """Simulate a spectrum using the selected simulation routine.
 
     Parameters
     ----------
     Sys : object
-        Spinsystem object of module 'epr_setup'.
+        Spin-system parameters from :mod:`spinanalysis.epr`.
     Exp : object
-        Experimental object of module 'epr_setup'. simulated_spectra will be
-        saved in Exp.spec_sim.
+        Experimental parameters from :mod:`spinanalysis.epr`. The simulated
+        spectrum is stored in ``Exp.spec_sim``.
     SimOpt : object
-        SimulationOptions object of module 'epr_setup'.
+        Simulation options from :mod:`spinanalysis.epr`.
 
     Raises
     ------
     ValueError
-        Will be raised, if the given simulation routine in SimOpt.routine is an
-        invalid string.
+        If ``SimOpt.routine`` is not supported.
 
     Returns
     -------
-    simulated_spectra : np.ndarray
-        Simulated spectra as a numpy.ndarray.
-
-    Examples
-    --------
-
-    Basic simulation using static_radical_pair:
-
-    >>> from epr_setup import Spinsystem, Experimental, SimulationOptions
-    >>> Sys = Spinsystem()
-    >>> Exp = Experimental()
-    >>> SimOpt = SimulationOptions()
-    >>> SimOpt.routine = 'static_radpair'
-    >>> simulate(Sys, Exp, SimOpt)
-
-    Plot your result:
-
-    >>> from plotting import plot_2D
-    >>> plot_2D(Exp.B_z , Exp.spec_sim)
-
+    numpy.ndarray
+        The normalized simulated spectrum.
     """
     SimOpt.mode = "simulation"
 
-    # TODO an match case anpassen PYTHON 3.10
     if SimOpt.routine.lower() == "static_radpair":
         simulated_spectra = do_simulation_multicore(Sys, Exp, SimOpt)
     elif SimOpt.routine.lower() == "teacups":
@@ -139,62 +82,31 @@ def optimize(
     FitOpt: object,
     Var: object,
 ) -> object:
-    # Hinschreiben welche Optimierungen möglich sind + Paper.
-    """
-    Do various optimizations with all simulations available in
-    'easypairspin()'.
+    """Optimize spin-system parameters using the selected routine.
 
     Parameters
     ----------
     Sys : object
-        Spinsystem object of module 'epr_setup'.
+        Spin-system parameters from :mod:`spinanalysis.epr`.
     Exp : object
-        Experimental object of module 'epr_setup'.
+        Experimental parameters from :mod:`spinanalysis.epr`.
     SimOpt : object
-        SimulationOptions object of module 'epr_setup'.
+        Simulation options from :mod:`spinanalysis.epr`.
     FitOpt : object
-        FittingOptions object of module 'epr_setup'.
+        Fitting options from :mod:`spinanalysis.epr`.
     Var : object
-        Variation object of module 'epr_setup'.
+        Variation parameters from :mod:`spinanalysis.epr`.
 
     Raises
     ------
     ValueError
-        Will be raised, if the given simulation routine in FitOpt.routine is an
-        invalid string.
+        If ``FitOpt.routine`` is not supported.
 
     Returns
     -------
-    best_Spinsystem: object
-        The best Spinsystem found during optimization. Object is of class
-        Spinsystem of module 'epr_setup'.
-
-    Examples
-    --------
-
-    Basic optimization using genetic_radpair and static_radical_pair:
-
-    >>> from epr_setup import Spinsystem, Experimental, SimulationOptions,
-    ... FittingOptions, Variation
-    >>> Sys = Spinsystem()
-    >>> Exp = Experimental()
-    >>> SimOpt = SimulationOptions()
-    >>> SimOpt.routine = 'static_radpair'
-    >>> FitOpt = FittingOptions()
-    >>> Var = Variation()
-    >>> Var.g1 = np.array([0.001, 0.003, 0.002])
-    >>> best_Sys = optimize(Sys, Exp, SimOpt, FitOpt, Var)
-
-    Plot your result:
-
-    >>> from plotting import plot_2D
-    >>> simulate(best_Sys, Exp, SimOpt)
-    >>> plot_2D(Exp.B_z , Exp.spec_sim)
-
-
+    object
+        The best spin-system parameters found during optimization.
     """
-    # TODO an match case anpassen PYTHON 3.10
-
     SimOpt.mode = "fitting"
 
     if FitOpt.routine.lower() == "genetic":
