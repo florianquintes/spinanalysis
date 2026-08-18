@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-© M. Sc. Florian Quintes, 2021-2022
+"""Data models for EPR systems, experiments, and optimization settings.
+
+© M. Sc. Florian Quintes, 2026
 
 @contact: florian.quintes@pc.uni.freiburg.de
 
@@ -10,11 +11,119 @@
 
 import numpy as np
 import scipy.constants as constant
+import warnings
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from spinanalysis import profiles
+from typing import Any, ClassVar
 
 
-class EPR_Parameters:
+class ExperimentalInput(BaseModel):
+    """Validated input data for :class:`Experimental`."""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    magnetic_field: np.ndarray | None = None
+    real_int: np.ndarray | None = None
+    imag_int: np.ndarray | None = None
+    cmplx_int: np.ndarray | None = None
+    time_axis: np.ndarray | None = None
+    rescale: bool = True
+
+    @field_validator(
+        "magnetic_field",
+        "real_int",
+        "imag_int",
+        "cmplx_int",
+        "time_axis",
+        mode="before",
+    )
+    @classmethod
+    def convert_arrays(cls, value: object) -> np.ndarray | None:
+        """Convert array-like input to an independent NumPy array."""
+        if value is None:
+            return None
+        return np.asarray(value).copy()
+
+    @field_validator("real_int", "imag_int", "time_axis", mode="after")
+    @classmethod
+    def require_real_arrays(cls, value: np.ndarray | None) -> np.ndarray | None:
+        """Reject complex-valued real intensity and time-axis inputs."""
+        if value is not None and np.iscomplexobj(value):
+            raise ValueError("real_int, imag_int, and time_axis must be real-valued")
+        return value
+
+    @field_validator("cmplx_int", mode="after")
+    @classmethod
+    def require_complex_intensity(cls, value: np.ndarray | None) -> np.ndarray | None:
+        """Require complex-valued input for ``cmplx_int``."""
+        if value is not None and not np.iscomplexobj(value):
+            raise ValueError("cmplx_int must contain complex-valued data")
+        return value
+
+    @field_validator("magnetic_field", mode="after")
+    @classmethod
+    def require_real_field(cls, value: np.ndarray | None) -> np.ndarray | None:
+        """Reject complex-valued magnetic-field input."""
+        if value is not None and np.iscomplexobj(value):
+            raise ValueError("magnetic_field must be real-valued")
+        return value
+
+    @model_validator(mode="after")
+    def validate_intensity_sources(self) -> "ExperimentalInput":
+        """Ensure complex and component intensity inputs are not combined."""
+        if self.cmplx_int is not None and (
+            self.real_int is not None or self.imag_int is not None
+        ):
+            raise ValueError("cmplx_int cannot be combined with real_int or imag_int")
+        if self.real_int is not None and self.imag_int is not None:
+            if self.real_int.shape != self.imag_int.shape:
+                raise ValueError("real_int and imag_int must have matching shapes")
+        return self
+
+
+class _MutableModel(BaseModel):
+    """Compatibility base for mutable runtime models."""
+
+    model_config = ConfigDict(
+        extra="allow", arbitrary_types_allowed=True, validate_assignment=True
+    )
+
+    @field_validator(
+        "g1",
+        "g2",
+        "g_tri",
+        "g",
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "A5",
+        "population",
+        "g1_frame",
+        "g2_frame",
+        "g_tri_frame",
+        "g_frame",
+        "A1_frame",
+        "A2_frame",
+        "A3_frame",
+        "A4_frame",
+        "A5_frame",
+        "D_frame",
+        "D_tri_frame",
+        mode="before",
+        check_fields=False,
+    )
+    @classmethod
+    def arrays(cls, value: object) -> np.ndarray:
+        return np.asarray(value, dtype=float)
+
+    def __setattr__(self, name: str, value: object) -> None:
+        super().__setattr__(name, value)
+
+
+class EPR_Parameters(_MutableModel):
     """
+
     A class containing all parameters for various radical pair simulations.
 
     Attributes
@@ -115,7 +224,44 @@ class EPR_Parameters:
 
     """
 
-    def __init__(self) -> None:
+    g1: np.ndarray = Field(default_factory=lambda: np.array([2.002, 2.002, 2.002]))
+    g2: np.ndarray = Field(default_factory=lambda: np.array([2.004, 2.004, 2.004]))
+    g_tri: np.ndarray = Field(default_factory=lambda: np.array([2.002, 2.002, 2.002]))
+    g: np.ndarray = Field(default_factory=lambda: np.array([2.002, 2.002, 2.002]))
+    A1: np.ndarray = Field(default_factory=lambda: np.zeros(3))
+    A2: np.ndarray = Field(default_factory=lambda: np.zeros(3))
+    A3: np.ndarray = Field(default_factory=lambda: np.zeros(3))
+    A4: np.ndarray = Field(default_factory=lambda: np.zeros(3))
+    A5: np.ndarray = Field(default_factory=lambda: np.zeros(3))
+    A_eseem: float = 0.0
+    omega_I: float = 0.0
+    D: float = 1.0
+    D_tri: float = 0.0
+    E: float = 0.0
+    E_tri: float = 0.0
+    J_ex: float = 0.0
+    J_0: float = 0.0
+    beta: float = 1.4
+    g1_frame: np.ndarray = Field(default_factory=lambda: np.zeros(3))
+    g2_frame: np.ndarray = Field(default_factory=lambda: np.zeros(3))
+    g_tri_frame: np.ndarray = Field(default_factory=lambda: np.zeros(3))
+    g_frame: np.ndarray = Field(default_factory=lambda: np.zeros(3))
+    A1_frame: np.ndarray = Field(default_factory=lambda: np.zeros(3))
+    A2_frame: np.ndarray = Field(default_factory=lambda: np.zeros(3))
+    A3_frame: np.ndarray = Field(default_factory=lambda: np.zeros(3))
+    A4_frame: np.ndarray = Field(default_factory=lambda: np.zeros(3))
+    A5_frame: np.ndarray = Field(default_factory=lambda: np.zeros(3))
+    D_frame: np.ndarray = Field(default_factory=lambda: np.zeros(3))
+    D_tri_frame: np.ndarray = Field(default_factory=lambda: np.zeros(3))
+    width_gauss: float = 0.5
+    T_relax_1: float = 0.0
+    T_relax_2: float = 0.0
+    T_pm: float = 0.0
+    decay: float = 0.0
+    population: np.ndarray = Field(default_factory=lambda: np.array([1.0, 0.0, 0.0]))
+    amplitude: float = 0.0
+
+    def __init__(self, **data: Any) -> None:
         """
         Initialize object of class 'Spinsystem' for radical pair simulation.
 
@@ -124,6 +270,11 @@ class EPR_Parameters:
         None.
 
         """
+        if data:
+            super().__init__(**data)
+            return
+        super().__init__()
+
         # [SPINSYSTEM]
         self.g1 = np.array([2.002, 2.002, 2.002])
         self.g2 = np.array([2.004, 2.004, 2.004])
@@ -284,7 +435,131 @@ class Spinsystem(EPR_Parameters):
 
     """
 
-    def __init__(self) -> None:
+    g1_iso: float = Field(default=0.0, exclude=True)
+    g2_iso: float = Field(default=0.0, exclude=True)
+    spin_system: str = "rp"
+    precursor: str = "singlet"
+    acceptor_list: np.ndarray = Field(default_factory=lambda: np.array([1, 2, 3]))
+    donor_list: np.ndarray = Field(default_factory=lambda: np.array([4, 5]))
+    n1: int = 0
+    I1: float = 0.0
+    n2: int = 0
+    I2: float = 0.0
+    n3: int = 0
+    I3: float = 0.0
+    n4: int = 0
+    I4: float = 0.0
+    n5: int = 0
+    I5: float = 0.0
+    dynamics: np.ndarray | None = None
+    distribution_order: int = 3
+    distribution: np.ndarray | None = None
+
+    @field_validator("acceptor_list", "donor_list", mode="before")
+    @classmethod
+    def convert_nucleus_lists(cls, value: object) -> np.ndarray:
+        return np.asarray(value, dtype=int)
+
+    @field_validator("n1", "n2", "n3", "n4", "n5", mode="before")
+    @classmethod
+    def validate_nuclear_counts(cls, value: object) -> int:
+        """Require non-negative integer counts for equivalent nuclei."""
+        if isinstance(value, bool) or not isinstance(value, (int, np.integer)):
+            raise ValueError("nuclear counts must be non-negative integers")
+        if value < 0:
+            raise ValueError("nuclear counts must be non-negative integers")
+        return int(value)
+
+    @field_validator("I1", "I2", "I3", "I4", "I5", mode="before")
+    @classmethod
+    def validate_nuclear_spins(cls, value: object) -> float:
+        """Require non-negative nuclear spins in half-integer steps."""
+        if isinstance(value, bool):
+            raise ValueError("nuclear spins must be non-negative half-integers")
+        try:
+            spin = float(value)
+        except (TypeError, ValueError) as error:
+            raise ValueError(
+                "nuclear spins must be non-negative half-integers"
+            ) from error
+        if (
+            not np.isfinite(spin)
+            or spin < 0
+            or not np.isclose(spin * 2, round(spin * 2))
+        ):
+            raise ValueError("nuclear spins must be non-negative half-integers")
+        return spin
+
+    PROFILE_FIELDS: ClassVar[tuple[str, ...]] = (
+        "spin_system",
+        "precursor",
+        "acceptor_list",
+        "donor_list",
+        "n1",
+        "I1",
+        "n2",
+        "I2",
+        "n3",
+        "I3",
+        "n4",
+        "I4",
+        "n5",
+        "I5",
+        "dynamics",
+        "distribution_order",
+        "distribution",
+        "g1",
+        "g2",
+        "g_tri",
+        "g",
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "A5",
+        "A_eseem",
+        "omega_I",
+        "D",
+        "D_tri",
+        "E",
+        "E_tri",
+        "J_ex",
+        "J_0",
+        "beta",
+        "g1_frame",
+        "g2_frame",
+        "g_tri_frame",
+        "g_frame",
+        "A1_frame",
+        "A2_frame",
+        "A3_frame",
+        "A4_frame",
+        "A5_frame",
+        "D_frame",
+        "D_tri_frame",
+        "width_gauss",
+        "T_relax_1",
+        "T_relax_2",
+        "T_pm",
+        "decay",
+        "population",
+        "amplitude",
+    )
+    FRAME_FIELDS: ClassVar[tuple[str, ...]] = (
+        "g1_frame",
+        "g2_frame",
+        "g_tri_frame",
+        "g_frame",
+        "A1_frame",
+        "A2_frame",
+        "A3_frame",
+        "A4_frame",
+        "A5_frame",
+        "D_frame",
+        "D_tri_frame",
+    )
+
+    def __init__(self, degree: bool = False, **data: Any) -> None:
         """
         Initialize object of class 'Spinsystem' for radical pair simulation.
 
@@ -293,6 +568,12 @@ class Spinsystem(EPR_Parameters):
         None.
 
         """
+        if data:
+            super().__init__(**data)
+            self._get_g_iso()
+            if degree:
+                self._convert_frames_to_radians()
+            return
         super().__init__()
 
         # [SPIN SYSTEM]
@@ -321,11 +602,26 @@ class Spinsystem(EPR_Parameters):
         # [DISTRIBUTIONS]
         self.distribution_order = 3
         self.distribution = None
+        if degree:
+            self._convert_frames_to_radians()
+
+    def _convert_frames_to_radians(self) -> None:
+        """Convert all orientation fields from degrees to radians."""
+        for key in self.FRAME_FIELDS:
+            setattr(
+                self, key, np.asarray(getattr(self, key), dtype=float) * np.pi / 180
+            )
 
     def _get_g_iso(self) -> None:
         """Get g1_iso and g2_iso."""
-        self.g1_iso = self.g1.sum() / 3
-        self.g2_iso = self.g2.sum() / 3
+        self.g1_iso = np.mean(self.g1)
+        self.g2_iso = np.mean(self.g2)
+
+    def __setattr__(self, name: str, value: object) -> None:
+        """Keep derived isotropic g values in sync with tensor assignments."""
+        super().__setattr__(name, value)
+        if name in ("g1", "g2") and hasattr(self, "g1") and hasattr(self, "g2"):
+            self._get_g_iso()
 
     def load(self, profile_name: str, degree: bool = False) -> None:
         """
@@ -352,37 +648,32 @@ class Spinsystem(EPR_Parameters):
         """
         spinsystem_profile = profiles.load_profile(profile_name, "spinsystem")
 
-        for key in vars(self):
-            if key not in ("g1_iso", "g2_iso"):
-                try:
-                    vars(self)[key] = spinsystem_profile["main"][key]
-                except KeyError:
-                    pass
-
-                try:
-                    if len(vars(self)[key]) == 3:
-                        vars(self)[key] = np.array(vars(self)[key])
-                except TypeError:
-                    pass
-
-                if key in ("acceptor_list", "donor_list"):
-                    vars(self)[key] = np.array(vars(self)[key])
-
-                if key == "distribution":
-                    if vars(self)[key] in ("None", None):
-                        vars(self)[key] = None
-                    else:
-                        vars(self)[key] = np.array(vars(self)[key])
-                        size = vars(self)[key].size
-                        vars(self)[key] = vars(self)[key].reshape((2, size // 2))
-
-                if degree:
-                    if key.endswith("_frame"):
-                        vars(self)[key] *= np.pi / 180
+        values = spinsystem_profile["main"]
+        for key in self.PROFILE_FIELDS:
+            if key not in values:
+                continue
+            value = values[key]
+            if value is None or value == "None":
+                value = None
+            elif key == "distribution":
+                if value is None:
+                    value = None
+                else:
+                    distribution = np.asarray(value, dtype=float)
+                    if distribution.size % 2:
+                        raise ValueError(
+                            "The distribution profile must contain two rows."
+                        )
+                    value = distribution.reshape(2, -1)
+            elif isinstance(value, (list, tuple)):
+                value = np.asarray(value)
+            if degree and key in self.FRAME_FIELDS:
+                value = np.asarray(value, dtype=float) * np.pi / 180
+            setattr(self, key, value)
 
         self._get_g_iso()
 
-    def save(self, profile_name: str = "") -> None:
+    def save(self, profile_name: str = "", degree: bool = False) -> None:
         """
         Save the spinsystem as a profile.
 
@@ -405,16 +696,19 @@ class Spinsystem(EPR_Parameters):
         spinsys_profile = profiles.new_spinsystem_profile()
 
         for key in spinsys_profile["main"]:
-            if isinstance(vars(self)[key], np.ndarray):
-                spinsys_profile["main"][key] = list(vars(self)[key].flatten())
-            else:
-                spinsys_profile["main"][key] = vars(self)[key]
+            value = getattr(self, key)
+            if degree and key in self.FRAME_FIELDS:
+                value = np.asarray(value, dtype=float) * 180 / np.pi
+            spinsys_profile["main"][key] = (
+                value.flatten().tolist() if isinstance(value, np.ndarray) else value
+            )
 
         profiles.add_profile(spinsys_profile, "spinsystem", pname=profile_name)
 
 
-class Experimental:
+class Experimental(_MutableModel):
     """
+
     A class containing all experimental parameters and data.
 
     Attributes
@@ -441,6 +735,20 @@ class Experimental:
 
     """
 
+    B_z: np.ndarray = Field(
+        default_factory=lambda: np.linspace(240, 260, 100), exclude=True
+    )
+    magnetic_field: np.ndarray = Field(
+        default_factory=lambda: np.linspace(240, 260, 100), exclude=True
+    )
+    freq_mw: float = Field(default=9.7e9)
+    B_mw: float = Field(default=1e-3)
+    t_scale: list[float] = Field(default_factory=lambda: [0.0, 2e-6], exclude=True)
+    t_points: int = Field(default=2, exclude=True)
+    time_axis: np.ndarray | None = Field(default=None, exclude=True)
+    int: np.ndarray | None = Field(default=None, exclude=True)
+    spec_sim: np.ndarray = Field(default_factory=lambda: np.zeros(100), exclude=True)
+
     def __init__(
         self,
         magnetic_field: np.array = None,
@@ -449,6 +757,7 @@ class Experimental:
         cmplx_int: np.array = None,
         time_axis: np.array = None,
         rescale: bool = True,
+        **data: Any,
     ):
         """
         Initialize object of class 'Experimental' for radical pair simulation.
@@ -475,41 +784,70 @@ class Experimental:
         None.
 
         """
-        self.magnetic_field = magnetic_field
-        if self.magnetic_field is None:
+        super().__init__()
+        input_data = ExperimentalInput(
+            magnetic_field=magnetic_field,
+            real_int=real_int,
+            imag_int=imag_int,
+            cmplx_int=cmplx_int,
+            time_axis=time_axis,
+            rescale=rescale,
+        )
+
+        if input_data.magnetic_field is None:
             self.B_z = np.linspace(240, 260, 100)
         else:
-            self.B_z = 1 * magnetic_field  # external magnetic field / mT
-        self.freq_mw = 9.7e9  # Microwave radiation / Hz
-        self.B_mw = 1e-3
+            self.B_z = np.asarray(input_data.magnetic_field, dtype=float)
+        self.magnetic_field = self.B_z.copy()
+        self.freq_mw = data.pop("freq_mw", 9.7e9)  # Microwave radiation / Hz
+        self.B_mw = data.pop("B_mw", 1e-3)
 
         self.t_scale = [0, 2e-6]
         self.t_points = 2
-        self.time_axis = time_axis
-        if time_axis is not None:
-            self.t_scale[0] = time_axis.min()
-            self.t_scale[1] = time_axis.max()
-            self.t_points = time_axis.shape[0]
+        self.time_axis = None
+        if input_data.time_axis is not None:
+            self.time_axis = np.asarray(input_data.time_axis, dtype=float)
+            if self.time_axis.ndim != 1 or self.time_axis.size < 2:
+                raise ValueError(
+                    "time_axis must be a one-dimensional array with at least two points."
+                )
+            self.t_scale[0] = self.time_axis.min()
+            self.t_scale[1] = self.time_axis.max()
+            self.t_points = self.time_axis.size
 
         self.int = None
-        if cmplx_int is not None:
-            self.int = cmplx_int
+        if input_data.cmplx_int is not None:
+            self.int = np.asarray(input_data.cmplx_int, dtype=np.complex128)
         else:
-            if real_int is not None:
+            if input_data.real_int is not None:
+                real_int = np.asarray(input_data.real_int, dtype=float)
                 self.int = np.zeros(real_int.shape, dtype="complex128")
                 self.int.real = real_int
-            if imag_int is not None:
+            if input_data.imag_int is not None:
+                imag_int = np.asarray(input_data.imag_int, dtype=float)
                 if self.int is not None:
+                    if self.int.shape != imag_int.shape:
+                        raise ValueError(
+                            "real_int and imag_int must have matching shapes."
+                        )
                     self.int.imag = imag_int
                 else:
                     self.int = np.zeros(imag_int.shape, dtype="complex128")
-                    self.int.imag = real_int
+                    self.int.imag = imag_int
 
-        if self.int is not None and rescale:
-            self.int /= np.abs(self.int).max()
-            self.spec_sim = np.zeros(
-                self.int.shape, dtype="complex128"
-            )  # simulated spectra
+        if self.int is not None:
+            if self.int.ndim == 1 and input_data.magnetic_field is not None:
+                if self.int.shape[0] != self.B_z.size:
+                    raise ValueError(
+                        "The intensity data and magnetic-field axis must have compatible lengths."
+                    )
+            if input_data.rescale:
+                maximum = np.abs(self.int).max()
+                if maximum:
+                    self.int /= maximum
+            self.spec_sim = np.zeros(self.int.shape, dtype="complex128")
+        else:
+            self.spec_sim = np.zeros(self.B_z.shape, dtype="complex128")
 
     def get_linear_time_axis(
         self, t_min: float = None, t_max: float = None, t_points: int = None
@@ -541,12 +879,22 @@ class Experimental:
             Nothing will be returned.
 
         """
+        if self.time_axis is None and (t_min is None or t_max is None):
+            raise ValueError(
+                "t_min and t_max are required when no time_axis is available."
+            )
+
         if t_min is not None:
             self.t_scale[0] = t_min
         if t_max is not None:
             self.t_scale[1] = t_max
         if t_points is not None:
             self.t_points = t_points
+
+        if self.t_points < 2:
+            raise ValueError("t_points must be at least 2.")
+        if self.t_scale[0] >= self.t_scale[1]:
+            raise ValueError("t_min must be smaller than t_max.")
 
         self.time_axis = np.linspace(self.t_scale[0], self.t_scale[1], self.t_points)
 
@@ -633,7 +981,59 @@ class Variation(EPR_Parameters):
 
     """
 
-    def __init__(self):
+    bohr_magneton: float = Field(default=0.0, exclude=True)
+    fit_distribution: bool = False
+    freq_mw: float = 0.0
+    non_vars: tuple[str, ...] = Field(default=(), exclude=True)
+    single_vars: tuple[str, ...] = Field(default=(), exclude=True)
+    needed_digits: int = Field(default=0, exclude=True)
+    number_of_genes: int = Field(default=0, exclude=True)
+    variation_array: np.ndarray = Field(
+        default_factory=lambda: np.array([]), exclude=True
+    )
+    boundaries: list[tuple[float, float]] = Field(default_factory=list, exclude=True)
+
+    PROFILE_FIELDS: ClassVar[tuple[str, ...]] = (
+        "g1",
+        "g2",
+        "g_tri",
+        "g",
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "A5",
+        "A_eseem",
+        "omega_I",
+        "D",
+        "D_tri",
+        "E",
+        "E_tri",
+        "beta",
+        "J_0",
+        "J_ex",
+        "g1_frame",
+        "g2_frame",
+        "g_tri_frame",
+        "g_frame",
+        "A1_frame",
+        "A2_frame",
+        "A3_frame",
+        "A4_frame",
+        "A5_frame",
+        "D_frame",
+        "D_tri_frame",
+        "width_gauss",
+        "T_relax_1",
+        "T_relax_2",
+        "T_pm",
+        "decay",
+        "population",
+        "freq_mw",
+        "amplitude",
+    )
+
+    def __init__(self, **data: Any):
         """
         Initialize object of class 'Variation' for radical pairs in EPR.
 
@@ -642,15 +1042,28 @@ class Variation(EPR_Parameters):
         None.
 
         """
+        if data:
+            super().__init__(**data)
+            for key in self.PROFILE_FIELDS:
+                if key not in self.model_fields_set:
+                    value = getattr(self, key)
+                    if isinstance(value, np.ndarray):
+                        setattr(self, key, np.zeros_like(value, dtype=float))
+                    elif isinstance(value, (float, int)):
+                        setattr(self, key, 0.0)
+            self._initialize_runtime_fields()
+            return
         super().__init__()
-        for key in vars(self):
-            if isinstance(vars(self)[key], float):
-                vars(self)[key] = 0.0
-            elif isinstance(vars(self)[key], int):
-                vars(self)[key] = 0
-            else:
-                for i in range(len(vars(self)[key])):
-                    vars(self)[key][i] = 0.0
+        self._initialize_variation_fields()
+
+    def _initialize_variation_fields(self) -> None:
+        """Initialize variation values and optimizer metadata."""
+        for key in self.PROFILE_FIELDS:
+            value = getattr(self, key)
+            if isinstance(value, np.ndarray):
+                setattr(self, key, np.zeros_like(value, dtype=float))
+            elif isinstance(value, (float, int)):
+                setattr(self, key, 0.0)
 
         self.bohr_magneton = constant.value("Bohr magneton in Hz/T")
 
@@ -690,9 +1103,47 @@ class Variation(EPR_Parameters):
             "width_gauss",
         )
 
+        self.needed_digits = 0
+        self.number_of_genes = 0
+        self.variation_array = np.array([], dtype=float)
+        self.boundaries = []
+
+    def _initialize_runtime_fields(self) -> None:
+        """Initialize metadata when constructing from validated data."""
+        self.bohr_magneton = constant.value("Bohr magneton in Hz/T")
+        self.non_vars = (
+            "bohr_magneton",
+            "needed_digits",
+            "number_of_genes",
+            "variation_array",
+            "boundaries",
+            "isotropic",
+            "fit_distribution",
+            "non_vars",
+            "single_vars",
+        )
+        self.single_vars = (
+            "A_eseem",
+            "omega_I",
+            "D",
+            "D_tri",
+            "E",
+            "E_tri",
+            "beta",
+            "J_0",
+            "J_ex",
+            "T_relax_1",
+            "T_relax_2",
+            "T_pm",
+            "decay",
+            "freq_mw",
+            "amplitude",
+            "width_gauss",
+        )
+
     def load(self, profile_name: str, degree: bool = False) -> None:
         """
-        Laod a variation object from a profile.
+        Load a variation object from a profile.
 
         Load the settings from [sys.prefix]/easypairspin/profiles/variation/
         [profile_name].ini into the Variation object. Overwrites previous
@@ -715,22 +1166,16 @@ class Variation(EPR_Parameters):
         """
         variation_profile = profiles.load_profile(profile_name, "variation")
 
-        for key in vars(self):
-            if key not in ("g1_iso", "g2_iso", "bohr_magneton"):
-                try:
-                    vars(self)[key] = variation_profile["main"][key]
-                except KeyError:
-                    pass
-
-                try:
-                    if len(vars(self)[key]) == 3:
-                        vars(self)[key] = np.array(vars(self)[key])
-                except TypeError:
-                    pass
-
-            if degree:
-                if key.endswith("_frame"):
-                    vars(self)[key] *= np.pi / 180
+        values = variation_profile["main"]
+        for key in self.PROFILE_FIELDS:
+            if key not in values:
+                continue
+            value = values[key]
+            if isinstance(value, (list, tuple)):
+                value = np.asarray(value)
+            if degree and key.endswith("_frame"):
+                value = np.asarray(value, dtype=float) * np.pi / 180
+            setattr(self, key, value)
 
     def save(self, profile_name: str = "") -> None:
         """
@@ -755,10 +1200,10 @@ class Variation(EPR_Parameters):
         var_profile = profiles.new_variation_profile()
 
         for key in var_profile["main"]:
-            if isinstance(vars(self)[key], np.ndarray):
-                var_profile["main"][key] = list(vars(self)[key])
-            else:
-                var_profile["main"][key] = vars(self)[key]
+            value = getattr(self, key)
+            var_profile["main"][key] = (
+                value.tolist() if isinstance(value, np.ndarray) else value
+            )
 
         profiles.add_profile(var_profile, "variation", pname=profile_name)
 
@@ -779,16 +1224,12 @@ class Variation(EPR_Parameters):
     def get_number_of_genes(self) -> None:
         """Determine number of parameters which get varied."""
         self.number_of_genes = 0
-        for key in vars(self):
-            if key in self.non_vars:
-                pass
-            elif key in self.single_vars:
-                if vars(self)[key] > 0.0:
+        for key, value in self._variation_fields():
+            if key in self.single_vars:
+                if value > 0.0:
                     self.number_of_genes += 1
             else:
-                for parameter in vars(self)[key]:
-                    if parameter > 0.0:
-                        self.number_of_genes += 1
+                self.number_of_genes += int(np.count_nonzero(np.asarray(value) > 0.0))
 
         return None
 
@@ -797,15 +1238,13 @@ class Variation(EPR_Parameters):
         self.get_number_of_genes()
         self.variation_array = np.zeros(self.number_of_genes)
         i = 0
-        for key in vars(self):
-            if key in self.non_vars:
-                pass
-            elif key in self.single_vars:
-                if vars(self)[key] > 0:
-                    self.variation_array[i] = vars(self)[key]
+        for key, value in self._variation_fields():
+            if key in self.single_vars:
+                if value > 0:
+                    self.variation_array[i] = value
                     i += 1
             else:
-                for parameter in vars(self)[key]:
+                for parameter in value:
                     if parameter > 0:
                         self.variation_array[i] = parameter
                         i += 1
@@ -837,13 +1276,11 @@ class Variation(EPR_Parameters):
         """
         self.boundaries = []
 
-        for key in vars(self):
-            if key in self.non_vars:
-                pass
-            elif key in self.single_vars:
-                if vars(self)[key] > 0:
-                    mid = vars(Sys)[key]
-                    var = vars(self)[key]
+        for key, value in self._variation_fields():
+            if key in self.single_vars:
+                if value > 0:
+                    mid = getattr(Sys, key)
+                    var = value
                     lb = mid - var
                     ub = mid + var
 
@@ -854,9 +1291,9 @@ class Variation(EPR_Parameters):
                     bounds = (lb, ub)
                     self.boundaries.append(bounds)
             else:
-                for i, parameter in enumerate(vars(self)[key]):
+                for i, parameter in enumerate(value):
                     if parameter > 0:
-                        mid = vars(Sys)[key][i]
+                        mid = getattr(Sys, key)[i]
                         var = parameter
                         lb = mid - var
                         ub = mid + var
@@ -865,6 +1302,10 @@ class Variation(EPR_Parameters):
                         self.boundaries.append(bounds)
 
         if self.fit_distribution:
+            if Sys.distribution is None:
+                raise ValueError(
+                    "Sys.distribution is required when fit_distribution is enabled."
+                )
             for i in range(Sys.distribution_order):
                 b_int = (0, 1)
                 b_pos = (Sys.distribution[0].min(), Sys.distribution[0].max())
@@ -875,9 +1316,19 @@ class Variation(EPR_Parameters):
 
         return None
 
+    def _variation_fields(self):
+        """Return variation fields in their stable declaration order."""
+        excluded = set(self.non_vars)
+        return (
+            (key, getattr(self, key))
+            for key in self.PROFILE_FIELDS
+            if key not in excluded
+        )
 
-class SimulationOptions:
+
+class SimulationOptions(_MutableModel):
     """
+
     A class containing all simulation options.
 
     Attributes
@@ -885,8 +1336,11 @@ class SimulationOptions:
     routine: str
         Name of the simulation routine which will be used by easypairspin() and
         easypairspin_optimize().
+    knots: int
+        Number of knots used for spherical grid. The default is 20.
     grid_points: int
-        Number of points used for spherical grid.
+        Deprecated alias for ``knots``. It remains supported for compatibility
+        but will be removed in a future release.
     space: str
         Name of the mathematical space used for some calculations.
     pop_evolution : boolean
@@ -952,7 +1406,74 @@ class SimulationOptions:
 
     """
 
-    def __init__(self):
+    routine: str = ""
+    cpu_cores: int = 0
+    knots: int = 20
+    grid_points: int = 20
+    refinement: int = 1
+    space: str = "hilbert"
+    pop_evolution: bool = True
+    eigval_mode: bool = False
+    min_r: float = 10.0
+    max_r: float = 50.0
+    r_points: int = 401
+    fast_mode: bool = False
+    GCV: bool = False
+    force_cpu: bool = False
+    regularization_mode: int = 2
+
+    @field_validator(
+        "cpu_cores", "grid_points", "refinement", "r_points", mode="before"
+    )
+    @classmethod
+    def validate_integer_options(cls, value: object) -> int:
+        if isinstance(value, bool) or not isinstance(value, (int, np.integer)):
+            raise ValueError("option must be an integer")
+        return int(value)
+
+    @field_validator("grid_points", mode="before")
+    @classmethod
+    def validate_grid_points(cls, value: object) -> int:
+        if (
+            isinstance(value, bool)
+            or not isinstance(value, (int, np.integer))
+            or value < 1
+        ):
+            raise ValueError("grid_points must be a positive integer")
+        return int(value)
+
+    @field_validator("knots", mode="before")
+    @classmethod
+    def validate_knots(cls, value: object) -> int:
+        if (
+            isinstance(value, bool)
+            or not isinstance(value, (int, np.integer))
+            or value < 1
+        ):
+            raise ValueError("knots must be a positive integer")
+        return int(value)
+
+    @field_validator(
+        "eigval_mode", "pop_evolution", "fast_mode", "GCV", "force_cpu", mode="before"
+    )
+    @classmethod
+    def validate_boolean_options(cls, value: object) -> bool:
+        if value is None:
+            return value
+        if not isinstance(value, (bool, np.bool_)):
+            raise ValueError("option must be a boolean")
+        return bool(value)
+
+    def __setattr__(self, name: str, value: object) -> None:
+        if name == "grid_points":
+            warnings.warn(
+                "SimulationOptions.grid_points is deprecated; use knots instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        super().__setattr__(name, value)
+
+    def __init__(self, **data: Any):
         """
         Initialize object of class 'Simulation_Options' used for simulations.
 
@@ -961,12 +1482,24 @@ class SimulationOptions:
         None.
 
         """
+        if "grid_points" in data:
+            warnings.warn(
+                "SimulationOptions.grid_points is deprecated; use knots instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        if data:
+            super().__init__(**data)
+            return
+        super().__init__()
+
         # [MAIN]
         self.routine = ""
         self.cpu_cores = 0
 
         # [STATIC_RADICAL_PAIR]
-        self.grid_points = 500
+        self.knots = 20
+        object.__setattr__(self, "grid_points", 20)
         self.refinement = 1
 
         # [TEACUPS]
@@ -1007,10 +1540,20 @@ class SimulationOptions:
         """
         simulation_profile = profiles.load_profile(profile_name, "simulation")
 
-        self.routine = simulation_profile["main"]["routine"]
+        self.routine = simulation_profile["main"]["routine"].lower()
         self.cpu_cores = simulation_profile["main"]["cpu_cores"]
-        for key in simulation_profile[self.routine].keys():
-            vars(self)[key] = simulation_profile[self.routine][key]
+        routine_profile = simulation_profile.get(self.routine, {})
+        for key, value in routine_profile.items():
+            if key == "grid_points":
+                warnings.warn(
+                    "SimulationOptions.grid_points is deprecated; use knots instead.",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
+                object.__setattr__(self, "grid_points", value)
+                continue
+            if hasattr(self, key):
+                setattr(self, key, value)
 
     def save(self, profile_name: str = "") -> None:
         """
@@ -1034,18 +1577,27 @@ class SimulationOptions:
         """
         simopt_profile = profiles.new_simulation_profile()
 
-        for section in ["main", "static_radpair", "teacups", "opossum"]:
+        for section in [
+            "main",
+            "static_radpair",
+            "teacups",
+            "opossum",
+            "didelphis",
+            "didelphis_tikhonov",
+        ]:
             for key in simopt_profile[section]:
-                if isinstance(vars(self)[key], np.ndarray):
-                    simopt_profile[section][key] = list(vars(self)[key])
-                else:
-                    simopt_profile[section][key] = vars(self)[key]
+                if hasattr(self, key):
+                    value = getattr(self, key)
+                    simopt_profile[section][key] = (
+                        value.tolist() if isinstance(value, np.ndarray) else value
+                    )
 
         profiles.add_profile(simopt_profile, "simulation", pname=profile_name)
 
 
-class FittingOptions:
+class FittingOptions(_MutableModel):
     """
+
     A class containing all optimization options.
 
     Attributes
@@ -1114,7 +1666,113 @@ class FittingOptions:
 
     """
 
-    def __init__(self):
+    routine: str | None = None
+    method: str | None = None
+    x0: np.ndarray | None = None
+    cpu_cores: int = 0
+    gui: bool = False
+    window: Any = None
+    GAVaPS: bool = True
+    representation: str | None = None
+    lifetime_mode: str | None = None
+    crossover_type: str | None = None
+    mutation_type: str | None = None
+    min_lifetime: int | None = None
+    max_lifetime: int | None = None
+    reproduction_ratio: float | None = None
+    p_c: float | None = None
+    p_m: float | None = None
+    pop_size: int | None = None
+    min_pop_size: int | None = None
+    max_pop_size: int | None = None
+    convergence: float | None = None
+    peak_prominence: float | None = None
+    error_weight: np.ndarray | None = None
+    max_generation: int | None = None
+    show_status: bool | None = None
+    maxiter: int | None = None
+    maxiter_minimizer: int | None = None
+    initial_temp: float | None = None
+    restart_temp_ratio: float | None = None
+    visit: float | None = None
+    accept: float | None = None
+    maxfun: int | None = None
+    no_local_search: bool | None = None
+    n: int | None = None
+    iters: int | None = None
+    maxfev: int | None = None
+    f_tol: float | None = None
+    maxev: int | None = None
+    maxtime: float | None = None
+    minimize_every_iter: bool | None = None
+    local_iter: int | None = None
+    sampling_method: str | None = None
+    strategy: str | None = None
+    popsize: int | None = None
+    tol: float | None = None
+    mutation: Any = None
+    recombination: float | None = None
+    seed: int | None = None
+    disp: bool | None = None
+    polish: bool | None = None
+    init: Any = None
+    atol: float | None = None
+    updating: str | None = None
+    T: float | None = None
+    niter: int | None = None
+    stepsize: float | None = None
+    interval: int | None = None
+    niter_success: int | None = None
+    target_accept_rate: float | None = None
+    stepwise_factor: float | None = None
+    ftol: float | None = None
+    xtol: float | None = None
+    gtol: float | None = None
+    loss: str | None = None
+    f_scale: float | None = None
+    max_nfev: int | None = None
+    tr_solver: str | None = None
+    verbose: int | None = None
+
+    @field_validator(
+        "cpu_cores",
+        "maxiter",
+        "maxiter_minimizer",
+        "maxfun",
+        "n",
+        "iters",
+        "maxfev",
+        "maxev",
+        "max_nfev",
+        mode="before",
+    )
+    @classmethod
+    def validate_integer_options(cls, value: object) -> object:
+        if value is not None and (
+            isinstance(value, bool) or not isinstance(value, (int, np.integer))
+        ):
+            raise ValueError("option must be an integer")
+        return value
+
+    @field_validator(
+        "gui",
+        "GAVaPS",
+        "show_status",
+        "no_local_search",
+        "disp",
+        "polish",
+        "minimize_every_iter",
+        mode="before",
+    )
+    @classmethod
+    def validate_boolean_options(cls, value: object) -> bool:
+        if value is None:
+            return value
+        if not isinstance(value, (bool, np.bool_)):
+            raise ValueError("option must be a boolean")
+        return bool(value)
+
+    def __init__(self, **data: Any):
         """
         Initialize object of class 'FittingOptions' used for optimization.
 
@@ -1123,6 +1781,11 @@ class FittingOptions:
         None.
 
         """
+        if data:
+            super().__init__(**data)
+            return
+        super().__init__()
+
         # [MAIN]
         self.routine = None
         self.method = None
@@ -1235,8 +1898,11 @@ class FittingOptions:
 
         self.routine = fitting_profile["main"]["routine"]
         self.cpu_cores = fitting_profile["main"]["cpu_cores"]
-        for key in fitting_profile[self.routine].keys():
-            vars(self)[key] = fitting_profile[self.routine][key]
+        for key, value in fitting_profile.get(self.routine, {}).items():
+            if key == "ftol" and not hasattr(self, key):
+                key = "f_tol"
+            if hasattr(self, key):
+                setattr(self, key, value)
 
     def save(self, profile_name: str = "") -> None:
         """
@@ -1271,9 +1937,14 @@ class FittingOptions:
             "least_squares",
         ]:
             for key in fitopt_profile[section]:
-                if isinstance(vars(self)[key], np.ndarray):
-                    fitopt_profile[section][key] = list(vars(self)[key])
+                if key == "ftol" and not hasattr(self, key):
+                    value = getattr(self, "f_tol", None)
+                elif hasattr(self, key):
+                    value = getattr(self, key)
                 else:
-                    fitopt_profile[section][key] = vars(self)[key]
+                    continue
+                fitopt_profile[section][key] = (
+                    value.tolist() if isinstance(value, np.ndarray) else value
+                )
 
         profiles.add_profile(fitopt_profile, "optimization", pname=profile_name)

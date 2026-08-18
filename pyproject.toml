@@ -14,6 +14,7 @@ dependencies = [
     "mkl>=2026.1.0",
     "mkl-service>=2.7.2",
     "numpy>=2.5.1",
+    "pydantic>=2.13.4",
     "scipy>=1.18.0",
     "statsmodels>=0.14.6",
 ]

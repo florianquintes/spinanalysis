@@ -14,7 +14,16 @@ from spinanalysis._utils import strtobool
 import validate
 import os
 import sys
+from pathlib import Path
 from zipfile import ZipFile
+
+
+PROFILE_ROOT = Path(
+    os.environ.get(
+        "SPINANALYSIS_PROFILE_DIR",
+        Path.home() / ".config" / "spinanalysis" / "profiles",
+    )
+)
 
 
 def import_profiles(zipfile: str, override: bool = False) -> None:
@@ -227,19 +236,16 @@ def add_profile(profile: dict, pkind: str, pname: str = "") -> None:
     if pname == "":
         pname = _get_profile_name(pkind)
 
-    config_path = os.path.join(sys.prefix, "easypairspin", "profiles", pkind)
+    config_path = PROFILE_ROOT / pkind
     if pkind == "plot":
-        config_name = os.path.join(config_path, pname)
+        config_name = config_path / pname
     else:
-        config_name = os.path.join(config_path, pname + ".ini")
-        path_to_configspec = os.path.join(
-            sys.prefix, "easypairspin", "profiles", pkind, "configspec.ini"
-        )
+        config_name = config_path / (pname + ".ini")
+        path_to_configspec = config_path / "configspec.ini"
 
-        if not os.path.exists(config_path):
-            os.makedirs(config_path)
+        config_path.mkdir(parents=True, exist_ok=True)
 
-        config = ConfigObj(config_name, configspec=path_to_configspec)
+        config = ConfigObj(str(config_name), configspec=str(path_to_configspec))
 
     # TODO Exception Handling, ob alle relevanten Werte (korrekt) gegeben sind
     # TODO match case Struktur einführen (wenn Python 3.10 möglich)
@@ -505,14 +511,12 @@ def load_profile(pname: str, pkind: str) -> dict:
     if pname.endswith(".ini"):
         pname = pname[:-4]
 
-    path_to_profile = os.path.join(
-        sys.prefix, "easypairspin", "profiles", pkind, pname + ".ini"
-    )
-    path_to_configspec = os.path.join(
-        sys.prefix, "easypairspin", "profiles", pkind, "configspec.ini"
-    )
+    path_to_profile = PROFILE_ROOT / pkind / (pname + ".ini")
+    path_to_configspec = PROFILE_ROOT / pkind / "configspec.ini"
 
-    config = ConfigObj(path_to_profile, configspec=path_to_configspec, file_error=True)
+    config = ConfigObj(
+        str(path_to_profile), configspec=str(path_to_configspec), file_error=True
+    )
     validator = validate.Validator()
     config.validate(validator)
 
@@ -864,9 +868,9 @@ def new_simulation_profile() -> dict:
     """
     default_profile = {
         "main": {"routine": "", "cpu_cores": 0},
-        "static_radpair": {"grid_points": 500},
+        "static_radpair": {"knots": 20},
         "teacups": {
-            "grid_points": 500,
+            "knots": 20,
             "space": "hilbert",
         },
         "opossum": {},

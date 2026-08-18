@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-© M. Sc. Florian Quintes, 2021-2022
+"""Provide spectrum simulation and spin-system optimization workflows.
+
+The module exposes :func:`simulate` for generating spectra with the supported
+simulation routines and :func:`optimize` for fitting spin-system parameters.
+
+© M. Sc. Florian Quintes, 2026
 
 @contact: florian.quintes@pc.uni.freiburg.de
 
@@ -50,24 +54,27 @@ def simulate(Sys: object, Exp: object, SimOpt: object) -> np.ndarray:
         The normalized simulated spectrum.
     """
     SimOpt.mode = "simulation"
+    routine = SimOpt.routine.lower()
 
-    if SimOpt.routine.lower() == "static_radpair":
-        simulated_spectra = do_simulation_multicore(Sys, Exp, SimOpt)
-    elif SimOpt.routine.lower() == "teacups":
-        if SimOpt.eigval_mode is True:
-            teacups(Sys, Exp, SimOpt)
-            simulated_spectra = np.ones((Exp.t_points, len(Exp.B_z)))
-        else:
-            SimOpt.mode = "fitting"
-            simulated_spectra = teacups(Sys, Exp, SimOpt)
-    elif SimOpt.routine.lower() == "opossum":
-        simulated_spectra = oop_eseem(Sys, Exp, SimOpt)
-    elif SimOpt.routine.lower() == "didelphis":
-        simulated_spectra = oop_eseem_distribution(Sys, Exp, SimOpt)
-    elif SimOpt.routine.lower() == "didelphis_tikhonov":
-        simulated_spectra = oop_eseem_distance_distribution(Sys, Exp, SimOpt)
-    else:
-        raise ValueError("Can't find a routine named '{0}'!".format(SimOpt.routine))
+    match routine:
+        case "static_radpair":
+            simulated_spectra = do_simulation_multicore(Sys, Exp, SimOpt)
+        case "teacups":
+            match SimOpt.eigval_mode:
+                case True:
+                    teacups(Sys, Exp, SimOpt)
+                    simulated_spectra = np.ones((Exp.t_points, len(Exp.B_z)))
+                case _:
+                    SimOpt.mode = "fitting"
+                    simulated_spectra = teacups(Sys, Exp, SimOpt)
+        case "opossum":
+            simulated_spectra = oop_eseem(Sys, Exp, SimOpt)
+        case "didelphis":
+            simulated_spectra = oop_eseem_distribution(Sys, Exp, SimOpt)
+        case "didelphis_tikhonov":
+            simulated_spectra = oop_eseem_distance_distribution(Sys, Exp, SimOpt)
+        case _:
+            raise ValueError("Can't find a routine named '{0}'!".format(SimOpt.routine))
 
     simulated_spectra /= (abs(simulated_spectra)).max()
     Exp.spec_sim = simulated_spectra
@@ -108,24 +115,26 @@ def optimize(
         The best spin-system parameters found during optimization.
     """
     SimOpt.mode = "fitting"
+    routine = FitOpt.routine.lower()
 
-    if FitOpt.routine.lower() == "genetic":
-        Gen_Rad = Genetic_Radpair(Sys, Exp, SimOpt, FitOpt, Var)
-        best_spinsystem = Gen_Rad.best_spinsystem
-    elif FitOpt.routine.lower() == "dual_annealing":
-        best_spinsystem = spo.dualannealing(Sys, Exp, SimOpt, FitOpt, Var)
-    elif FitOpt.routine.lower() == "shgo":
-        best_spinsystem = spo.shgo(Sys, Exp, SimOpt, FitOpt, Var)
-    elif FitOpt.routine.lower() == "differential_evolution":
-        best_spinsystem = spo.differential_evolution(Sys, Exp, SimOpt, FitOpt, Var)
-    elif FitOpt.routine.lower() == "basinhopping":
-        best_spinsystem = spo.basinhopping(Sys, Exp, SimOpt, FitOpt, Var)
-    elif FitOpt.routine.lower() == "least_squares":
-        best_spinsystem = spo.least_squares(Sys, Exp, SimOpt, FitOpt, Var)
-    elif FitOpt.routine.lower() == "minimize":
-        best_spinsystem = spo.minimize(Sys, Exp, SimOpt, FitOpt, Var)
-    else:
-        raise ValueError(
-            "Can't find an optimization routine named  '{0}'".format(FitOpt.routine)
-        )
+    match routine:
+        case "genetic":
+            genetic_radpair = Genetic_Radpair(Sys, Exp, SimOpt, FitOpt, Var)
+            best_spinsystem = genetic_radpair.best_spinsystem
+        case "dual_annealing":
+            best_spinsystem = spo.dualannealing(Sys, Exp, SimOpt, FitOpt, Var)
+        case "shgo":
+            best_spinsystem = spo.shgo(Sys, Exp, SimOpt, FitOpt, Var)
+        case "differential_evolution":
+            best_spinsystem = spo.differential_evolution(Sys, Exp, SimOpt, FitOpt, Var)
+        case "basinhopping":
+            best_spinsystem = spo.basinhopping(Sys, Exp, SimOpt, FitOpt, Var)
+        case "least_squares":
+            best_spinsystem = spo.least_squares(Sys, Exp, SimOpt, FitOpt, Var)
+        case "minimize":
+            best_spinsystem = spo.minimize(Sys, Exp, SimOpt, FitOpt, Var)
+        case _:
+            raise ValueError(
+                "Can't find an optimization routine named  '{0}'".format(FitOpt.routine)
+            )
     return best_spinsystem
