@@ -13,9 +13,29 @@ Core
 EPR
 ---
 
-.. automodule:: spinanalysis.epr
+.. autoclass:: spinanalysis.epr.Spinsystem
    :members:
-   :show-inheritance:
+   :no-index:
+
+.. autoclass:: spinanalysis.epr.Experimental
+   :members:
+   :no-index:
+
+.. autoclass:: spinanalysis.epr.Variation
+   :members:
+   :no-index:
+
+.. autoclass:: spinanalysis.epr.SimulationOptions
+   :members:
+   :no-index:
+
+.. autoclass:: spinanalysis.epr.FittingOptions
+   :members:
+   :no-index:
+
+.. autoclass:: spinanalysis.epr.ExperimentalInput
+   :members:
+   :no-index:
 
 Loading
 -------

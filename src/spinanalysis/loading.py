@@ -346,9 +346,10 @@ def load_epr_bruker_bes3t(
         Give the path starting from your home folder which the search for the
         data folder should start at. The default is None.
         E. g.: data is at /home/cooluser/nice/data/this_folder
-        and you know, that all your data is in /home/cooluser/nice/*, then you
-        can give this start_directory with start_directory='nice'. So
-        the function call would be:
+        and you know, that all your data is in /home/cooluser/nice/\\*, then
+        you can give this start_directory with start_directory='nice'. So
+        the function call would be::
+
             load_epr_bruker_bes3t(this_folder, 'nice')
 
         Recommended:
@@ -395,9 +396,10 @@ def load_epr_ESP_transient(
         Give the path starting from your home folder which the search for
         the data folder should start at. The default is None.
         E. g.: data is at /home/cooluser/nice/data/this_folder
-        and you know, that all your data is in /home/cooluser/nice/*, then you
-        can give this start_directory with start_directory='nice'. So
-        the function call would be:
+        and you know, that all your data is in /home/cooluser/nice/\\*, then
+        you can give this start_directory with start_directory='nice'. So
+        the function call would be::
+
             load_epr_ESP_transient(this_folder, 'nice')
 
         Recommended:
@@ -633,7 +635,7 @@ def load_simulated_data(
     folder: str, start_directory: str = None
 ) -> Tuple[np.array, np.array, np.array]:
     """
-    Load the simulated data from EasyPairSpin or data saved with
+    Load the simulated data from spinanalysis or data saved with
     saving.save_simulation(). Using numpy.loadtxt().
 
     Parameters
@@ -644,9 +646,10 @@ def load_simulated_data(
         Give the path starting from your home folder which the search for
         the data folder should start at. The default is None.
         E. g.: data is at /home/cooluser/nice/data/this_folder
-        and you know, that all your data is in /home/cooluser/nice/*, then you
-        can give this start_directory with start_directory='cooluser/nice'. So
-        the function call would be:
+        and you know, that all your data is in /home/cooluser/nice/\\*, then
+        you can give this start_directory with start_directory='cooluser/nice'.
+        So the function call would be::
+
             load_simulated_data(this_folder, 'cooluser/nice')
 
         Recommended:
@@ -696,10 +699,12 @@ def load_matlab(
         Give the path starting from your home folder which the search for
         the data folder should start at. The default is None.
         E. g.: data is at /home/cooluser/nice/data/this_folder
-        and you know, that all your data is in /home/cooluser/nice/*, then you
-        can give this start_directory with start_directory='cooluser/nice'. So
-        the function call would be:
+        and you know, that all your data is in /home/cooluser/nice/\\*, then
+        you can give this start_directory with start_directory='cooluser/nice'.
+        So the function call would be::
+
             load_simulated_data(this_folder, 'cooluser/nice')
+
     field : str, optional
         Name of the field array. The default is 'field'.
     signal : str, optional
@@ -737,9 +742,10 @@ def load_txt(
         Give the path starting from your home folder which the search for
         the data folder should start at. The default is ''.
         E. g.: data is at /home/cooluser/nice/data/this_folder
-        and you know, that all your data is in /home/cooluser/nice/*, then you
-        can give this start_directory with start_directory='cooluser/nice'. So
-        the function call would be:
+        and you know, that all your data is in /home/cooluser/nice/\\*, then
+        you can give this start_directory with start_directory='cooluser/nice'.
+        So the function call would be::
+
             load_simulated_data(this_folder, 'cooluser/nice')
 
     Returns

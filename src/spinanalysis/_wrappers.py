@@ -88,13 +88,13 @@ def function_benchmark(func: callable, niter: int = 100) -> callable:
 def multicore(simulation: callable) -> callable:
     """
     Using multiprocessing.Pool() with starmap() for parallel computing of
-    various simulation routines using the easypairspin function interface
+    various simulation routines using the spinanalysis function interface
     simulation(Sys, Exp, SimOpt).
 
     Parameters
     ----------
     simulation : callable
-        Simulation function which uses the easypairspin interface (Sys, Exp,
+        Simulation function which uses the spinanalysis interface (Sys, Exp,
         SimOpt).
 
     Returns

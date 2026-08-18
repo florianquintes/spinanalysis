@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-© M. Sc. Florian Quintes, 2021-2022
+© M. Sc. Florian Quintes, 2021-2026
 
 @contact: florian.quintes@pc.uni.freiburg.de
 
@@ -11,9 +11,8 @@
 from configobj import ConfigObj
 from matplotlib.pyplot import style
 from spinanalysis._utils import strtobool
-import validate
 import os
-import sys
+import validate
 from pathlib import Path
 from zipfile import ZipFile
 
@@ -25,473 +24,447 @@ PROFILE_ROOT = Path(
     )
 )
 
+_VALID_PROFILE_KINDS = (
+    "plot",
+    "simulation",
+    "optimization",
+    "spinsystem",
+    "variation",
+)
+
+_VALID_OPTIMIZATION_ROUTINES = (
+    "genetic",
+    "minimize",
+    "dual_annealing",
+    "shgo",
+    "differential_evolution",
+    "basinhopping",
+    "least_squares",
+)
+
+_VALID_SIMULATION_ROUTINES = (
+    "static_radpair",
+    "teacups",
+    "opossum",
+    "didelphis",
+    "didelphis_tikhonov",
+)
+
+
+def _normalize_pkind(pkind: str) -> str:
+    """Normalise a profile kind string to lower-case and map British spelling."""
+    pkind = pkind.lower()
+    if pkind == "optimisation":
+        pkind = "optimization"
+    if pkind not in _VALID_PROFILE_KINDS:
+        raise ValueError(
+            "pkind must be one of {}!".format(
+                ", ".join(repr(k) for k in _VALID_PROFILE_KINDS)
+            )
+        )
+    return pkind
+
+
+def _normalize_kinds(pkind: str | list[str]) -> list[str]:
+    """Normalise *pkind* (str or list) to a list of valid profile kinds."""
+    if pkind == "all":
+        return list(_VALID_PROFILE_KINDS)
+
+    if isinstance(pkind, str):
+        pkind = pkind.split()
+
+    stack: list[str] = []
+    for el in pkind:
+        el = el.lower()
+        if el == "optimisation":
+            el = "optimization"
+        if el in _VALID_PROFILE_KINDS:
+            stack.append(el)
+    return stack
+
 
 def import_profiles(zipfile: str, override: bool = False) -> None:
     """
     Import profiles from a zip archive.
+
+    The archive must contain subdirectories matching valid profile kinds
+    (e.g. ``spinsystem/``, ``simulation/``).  Files are extracted directly
+    into :data:`PROFILE_ROOT`.
 
     Parameters
     ----------
     zipfile : str
         Path to the zip archive.
     override : bool, optional
-        If True, existing profile with the same name will be overriden. The
-        default is False.
+        If True, existing profiles with the same name will be overwritten.
+        The default is False.
+
+    Raises
+    ------
+    ValueError
+        If the archive contains a top-level entry that does not correspond
+        to a valid profile kind.
 
     Returns
     -------
     None
-        Nothing will be returned.
 
     """
-    zipfile = os.path.abspath(zipfile)
-    profiles_folder = os.path.join(sys.prefix, "easypairspin", "profiles")
+    archive = Path(zipfile).resolve()
+    root = PROFILE_ROOT
 
-    with ZipFile(zipfile, "r") as zipfile:
-        for file in zipfile.namelist():
-            if os.path.isfile(os.path.join(profiles_folder, file)) and not override:
+    with ZipFile(str(archive), "r") as zf:
+        for entry in zf.namelist():
+            top = entry.split("/")[0]
+            if top and top not in _VALID_PROFILE_KINDS:
+                raise ValueError(
+                    "Archive entry '{}' does not match any valid profile kind.".format(
+                        top
+                    )
+                )
+            target = root / entry
+            if target.is_file() and not override:
                 continue
-
-            zipfile.extract(file, profiles_folder)
-
-        zipfile.close()
+            zf.extract(entry, str(root))
 
 
-def export(path: str = None, pkind: [str, list] = "all", pname: str = "all") -> None:
+def export(
+    path: str | None = None,
+    pkind: str | list[str] = "all",
+    pname: str = "all",
+) -> None:
     """
-    Export the choosen profile(s) as a zip archive.
+    Export the chosen profile(s) as a zip archive.
 
     Parameters
     ----------
     path : str, optional
-        Path where the zip file will be stored. If no path given, the zip file
+        Directory where the zip file will be stored. If None, the zip file
         will be stored in the current working directory. The default is None.
-    pkind : str, optional
-        Define which kind(s) of profiles should be exported. Multiple kinds of
-        profiles possible. Options are 'plot', 'spinsystem', 'optimization',
-        'save', 'variation', 'simulation' and 'all'. The default is 'all'.
+    pkind : str or list of str, optional
+        Define which kind(s) of profiles should be exported. Options are
+        'plot', 'spinsystem', 'optimization', 'simulation', 'variation' and
+        'all'. The default is 'all'.
     pname : str, optional
         Give the basename of the profile. The default is 'all'.
 
     Returns
     -------
     None
-        Nothing will be returned.
 
     """
-    profiles_folder = os.path.join(sys.prefix, "easypairspin", "profiles")
+    root = PROFILE_ROOT
+    kinds = _normalize_kinds(pkind)
 
-    if pkind == "all":
-        pkind = [
-            "plot",
-            "spinsystem",
-            "optimization",
-            "simulation",
-            "variation",
-            "save",
-        ]
-    else:
-        if not isinstance(pkind, list):
-            stack = []
-            for el in pkind.lower().strip().split():
-                if el in (
-                    "plot",
-                    "spinsystem",
-                    "optimization",
-                    "simulation",
-                    "variation",
-                    "save",
-                ):
-                    stack.append(el)
-                elif el == "optimisation":
-                    stack.append("optimization")
-                else:
-                    continue
-            pkind = stack
-
-        else:
-            stack = []
-            for el in pkind:
-                if el.lower() in (
-                    "plot",
-                    "spinsystem",
-                    "optimization",
-                    "simulation",
-                    "variation",
-                    "save",
-                ):
-                    stack.append(el.lower())
-                elif el.lower() == "optimisation":
-                    stack.append("optimization")
-                else:
-                    continue
-            pkind = stack
-
-    file_paths = []
-    for kind in pkind:
-        file_paths.extend(_get_profile_paths(os.path.join(profiles_folder, kind)))
+    file_paths: list[Path] = []
+    for kind in kinds:
+        file_paths.extend(_get_profile_paths(root / kind, pname))
 
     if path is None:
-        path = os.path.join(os.getcwd(), "profiles_easypairspin.zip")
+        archive = Path.cwd() / "profiles_spinanalysis.zip"
     else:
-        path = os.path.join(path, "profiles_easypairspin.zip")
+        archive = Path(path) / "profiles_spinanalysis.zip"
 
-    with ZipFile(path, "w") as zipfile:
-        for file in file_paths:
-            arcname = file[len(profiles_folder) + 1 :]
-            zipfile.write(file, arcname)
+    root_str = str(root)
+    with ZipFile(str(archive), "w") as zf:
+        for fp in file_paths:
+            arcname = str(fp)[len(root_str) + 1 :]
+            zf.write(str(fp), arcname)
 
-        zipfile.close()
 
-
-def _get_profile_paths(pfolder: str, pname: str = "all") -> None:
+def _get_profile_paths(pfolder: Path, pname: str = "all") -> list[Path]:
     """
-    Get the pathes of all profile.
+    Get the paths of all profiles in *pfolder*.
 
     Parameters
     ----------
-    pfolder: : str
+    pfolder : Path
         Folder with profiles.
     pname : str, optional
         Basename of the profile. The default is "all".
 
     Returns
     -------
-    None
-        Nothing will be returned.
+    list of Path
+        Paths to matching profile files.
 
     """
-    paths = []
+    paths: list[Path] = []
 
-    for root, directories, files in os.walk(pfolder):
-        for file in files:
-            if file.endswith("configspec.ini"):
-                continue
+    if not pfolder.is_dir():
+        return paths
 
-            if pname.lower() == "all":
-                paths.append(os.path.join(pfolder, file))
-            elif pname.lower() == os.path.basename(file):
-                paths.append(os.path.join(pfolder, file))
-            else:
-                continue
+    for fp in pfolder.rglob("*"):
+        if not fp.is_file():
+            continue
+        if fp.name == "configspec.ini":
+            continue
+        if pname.lower() == "all":
+            paths.append(fp)
+        elif pname.lower() == fp.name:
+            paths.append(fp)
 
     return paths
 
 
-def add_profile(profile: dict, pkind: str, pname: str = "") -> None:
+def _validate_profile_sections(profile: dict, pkind: str) -> None:
     """
-    Add a new profile for EasyPairSpin.
+    Check that all required sections and keys are present in the profile.
 
     Parameters
     ----------
     profile : dict
         Dictionary with all profile settings.
     pkind : str
-        Give the kind of the kind of the profile. Not case sensitive. pkind can
-        be 'plot', 'save', 'simulation', 'optimization', 'spinsystem' or
-        'variation'.
-    pname : str, optional
-        Name of the profile.  If no profile name is given, a default one will
-        be generated by _get_profile_name(). The default is ''.
-
+        Kind of the profile (already normalised to lower-case).
 
     Raises
     ------
     ValueError
-        Raised if pkind isn't 'plot', 'save', 'simulation', 'optimization',
-        'spinsystem' or 'variation'.
+        If a required section or key is missing.
 
     Returns
     -------
     None
-        Nothing will be returned.
+
+    """
+    if "main" not in profile:
+        raise ValueError(
+            "Profile for '{}' is missing the 'main' section.".format(pkind)
+        )
+
+    match pkind:
+        case "optimization" | "simulation":
+            routine = profile["main"].get("routine", "")
+            if not routine:
+                raise ValueError(
+                    "Profile for '{}' is missing 'routine' in the 'main' "
+                    "section.".format(pkind)
+                )
+            if routine not in profile:
+                raise ValueError(
+                    "Profile for '{}' is missing the '{}' section.".format(
+                        pkind, routine
+                    )
+                )
+
+
+def _set_configobj(profile: dict, config: ConfigObj, pkind: str) -> ConfigObj:
+    """
+    Write profile parameters into the ConfigObj.
+
+    For profiles that carry a routine (optimization, simulation), the
+    routine-specific section is validated and copied in addition to
+    ``main``.
+
+    Parameters
+    ----------
+    profile : dict
+        Dictionary with all profile settings.
+    config : ConfigObj
+        ConfigObj to populate.
+    pkind : str
+        Normalised profile kind.
+
+    Raises
+    ------
+    ValueError
+        If the routine is not valid for the given profile kind.
+
+    Returns
+    -------
+    ConfigObj
+        The populated ConfigObj.
+
+    """
+    main = {k: v for k, v in profile["main"].items() if v is not None}
+    config["main"] = main
+
+    match pkind:
+        case "optimization":
+            routine = profile["main"]["routine"]
+            if routine not in _VALID_OPTIMIZATION_ROUTINES:
+                raise ValueError("{} is no valid optimization routine!".format(routine))
+            config[routine] = profile[routine]
+        case "simulation":
+            routine = profile["main"]["routine"]
+            if routine not in _VALID_SIMULATION_ROUTINES:
+                raise ValueError("{} is no valid simulation routine!".format(routine))
+            config[routine] = profile[routine]
+
+    return config
+
+
+def add_profile(profile: dict, pkind: str, pname: str = "") -> None:
+    """
+    Add a new profile for spinanalysis.
+
+    Parameters
+    ----------
+    profile : dict
+        Dictionary with all profile settings.
+    pkind : str
+        Kind of the profile. Not case sensitive. Can be 'plot',
+        'simulation', 'optimization', 'spinsystem' or 'variation'.
+    pname : str, optional
+        Name of the profile. If no profile name is given, a default one
+        will be generated by :func:`_get_profile_name`. The default is ''.
+
+    Raises
+    ------
+    ValueError
+        If *pkind* is not a valid profile kind, or if the profile fails
+        configspec validation.
+
+    Returns
+    -------
+    None
 
     Examples
     --------
     Creating and adding a new profile:
 
-    >>> Sys = epr_setup.Spinsystem()
-    >>> Sys_profile = new_spinsystem_profile()
-    >>> Sys_profile['g_1'] = [2.0034, 2.00156, 2.00228]
-    >>> prom.add_profile(Sys.profile, 'spinsystem', 'Sys_prof_1')
+    >>> from spinanalysis.epr import Spinsystem
+    >>> from spinanalysis import profiles
+    >>> Sys = Spinsystem()
+    >>> Sys_profile = profiles.new_spinsystem_profile()
+    >>> Sys_profile['main']['g1'] = [2.0034, 2.00156, 2.00228]
+    >>> profiles.add_profile(Sys_profile, 'spinsystem', 'Sys_prof_1')
 
     """
-    pkind = pkind.lower()
-    if pkind == "optimisation":
-        pkind = "optimization"
-
-    if pkind not in (
-        "plot",
-        "save",
-        "simulation",
-        "optimization",
-        "spinsystem",
-        "variation",
-    ):
-        raise ValueError(
-            "pkind must be 'plot', 'save', 'simulation',"
-            " 'optimization', 'spinsystem' or 'variation'! "
-        )
+    pkind = _normalize_pkind(pkind)
 
     if pname == "":
         pname = _get_profile_name(pkind)
 
-    config_path = PROFILE_ROOT / pkind
-    if pkind == "plot":
-        config_name = config_path / pname
-    else:
-        config_name = config_path / (pname + ".ini")
-        path_to_configspec = config_path / "configspec.ini"
+    root = PROFILE_ROOT
+    config_path = root / pkind
 
-        config_path.mkdir(parents=True, exist_ok=True)
+    match pkind:
+        case "plot":
+            _save_config_plot(profile, config_path / pname)
+        case "spinsystem" | "variation" | "optimization" | "simulation":
+            _validate_profile_sections(profile, pkind)
+            config_name = config_path / (pname + ".ini")
+            path_to_configspec = config_path / "configspec.ini"
+            config_path.mkdir(parents=True, exist_ok=True)
+            config = ConfigObj(str(config_name), configspec=str(path_to_configspec))
 
-        config = ConfigObj(str(config_name), configspec=str(path_to_configspec))
+            config = _set_configobj(profile, config, pkind)
 
-    # TODO Exception Handling, ob alle relevanten Werte (korrekt) gegeben sind
-    # TODO match case Struktur einführen (wenn Python 3.10 möglich)
-    if pkind == "plot":
-        _save_config_plot(profile, config_name)
-    elif pkind == "spinsystem":
-        config = _set_configobj_spinsystem(profile, config)
-    elif pkind == "variation":
-        config = _set_configobj_variation(profile, config)
-    elif pkind == "optimization":
-        config = _set_configobj_optimization(profile, config)
-    elif pkind == "save":
-        config = _set_configobj_save(profile, config)
-    elif pkind == "simulation":
-        config = _set_configobj_simulation(profile, config)
-
-    if not (pkind == "plot"):
-        validator = validate.Validator()
-        config.validate(validator)
-        config.write()
+            _validate_config(config, pname)
+            config.write()
 
     return None
 
 
-def _save_config_plot(profile: dict, path: str) -> object:
+def _save_config_plot(profile: dict, path: Path) -> None:
     """
-    Write profile parameters into the ConfigObject for a plot profile.
+    Write plot profile parameters to a stylesheet file.
 
     Parameters
     ----------
     profile : dict
         Plot profile.
-    path : str
-        Path, where the profile will be stored.
+    path : Path
+        Path where the stylesheet will be stored.
 
     Returns
     -------
-    object
-        ConfigObj from module configobj.
+    None
 
     """
     preamble = "## {:*^76s}\n## {:*^76s}\n## {:*^76s}\n".format(
-        "", " EASYPAIRSPIN SPECIAL SETTINGS ", ""
+        "", " SPINANALYSIS SPECIAL SETTINGS ", ""
     )
-    with open(path, "w") as f:
-        f.write(preamble)
-        f.write("\n")
-        for key in profile:
-            if key.endswith("lim"):
-                line = "{}: {}, {}".format(
-                    str(key), str(profile[key][0]), str(profile[key][1])
-                )
-            else:
-                if isinstance(profile[key], (int, float, bool)):
-                    line = "{}: {}".format(str(key), str(profile[key]))
-                else:
-                    line = '{}: "{}"'.format(str(key), str(profile[key]))
-            f.write(line)
-            f.write("\n")
-        f.close()
-
-
-def _set_configobj_spinsystem(profile: dict, ConObj: object) -> object:
-    """
-    Write profile parameters into the ConfigObject for a spinsystem profile.
-
-    Parameters
-    ----------
-    profile : dict
-        Spinsystem profile.
-    ConObj : object
-        ConfigObj from module configobj.
-
-    Returns
-    -------
-    object
-        ConfigObj from module configobj.
-
-    """
-    ConObj["main"] = profile["main"]
-
-    return ConObj
-
-
-def _set_configobj_variation(profile: dict, ConObj: object) -> object:
-    """
-    Write profile parameters into the ConfigObject for a variation profile.
-
-    Parameters
-    ----------
-    profile : dict
-        Variation profile.
-    ConObj : object
-        ConfigObj from module configobj.
-
-    Returns
-    -------
-    object
-        ConfigObj from module configobj.
-
-    """
-    ConObj["main"] = profile["main"]
-
-    return ConObj
-
-
-def _set_configobj_optimization(profile: dict, ConObj: object) -> object:
-    """
-    Write profile parameters into the ConfigObject for an optimization profile.
-
-    Parameters
-    ----------
-    profile : dict
-        Optimization profile.
-    ConObj : object
-        ConfigObj from module configobj.
-
-    Raises
-    ------
-    ValueError
-        If no valid optimization routine is given.
-
-    Returns
-    -------
-    object
-        ConfigObj from module configobj.
-
-    """
-    ConObj["main"] = profile["main"]
-
-    routine = profile["main"]["routine"]
-    if routine in [
-        "genetic",
-        "minimize",
-        "dual_annealing",
-        "shgo",
-        "differential_evolution",
-        "basinhopping",
-        "least_squares",
-    ]:
-        ConObj[routine] = profile[routine]
-    else:
-        raise ValueError("{} is no valid optimization routine!".format(routine))
-
-    return ConObj
-
-
-def _set_configobj_simulation(profile: dict, ConObj: object) -> object:
-    """
-    Write profile parameters into the ConfigObject for a simulation  profile.
-
-    Parameters
-    ----------
-    profile : dict
-        Simulation profile.
-    ConObj : object
-        ConfigObj from module configobj.
-
-    Raises
-    ------
-    ValueError
-        If no valid simulation routine is given.
-
-    Returns
-    -------
-    object
-        ConfigObj from module configobj.
-
-    """
-    ConObj["main"] = profile["main"]
-
-    routine = profile["main"]["routine"]
-    if routine in ["static_radpair", "teacups", "opossum", "didelphis"]:
-        ConObj[routine] = profile[routine]
-    else:
-        raise ValueError("{} is no valid simulation routine!".format(routine))
-
-    return ConObj
-
-
-def _set_configobj_save(profile: dict, ConObj: object) -> object:
-    """
-    Write profile parameters into the ConfigObject for a save profile.
-
-    Parameters
-    ----------
-    profile : dict
-        Save profile.
-    ConObj : object
-        ConfigObj from module configobj.
-
-    Returns
-    -------
-    object
-        ConfigObj from module configobj.
-
-    """
-    ConObj["main"] = profile["main"]
-
-    return ConObj
+    lines = [preamble, "\n"]
+    for key in profile:
+        if key.endswith("lim"):
+            line = "{}: {}, {}".format(
+                str(key), str(profile[key][0]), str(profile[key][1])
+            )
+        elif isinstance(profile[key], (int, float, bool)):
+            line = "{}: {}".format(str(key), str(profile[key]))
+        else:
+            line = '{}: "{}"'.format(str(key), str(profile[key]))
+        lines.append(line + "\n")
+    Path(path).write_text("".join(lines))
 
 
 def _get_profile_name(pkind: str) -> str:
     """
     Search for the smallest number available for the default profile name.
 
-    Scheme for default profile name is 'profile_[number]'
+    Scheme for default profile name is 'profile_[number]'.
 
     Parameters
     ----------
     pkind : str
-        Give the kind of the kind of the profile. Not case sensitive. pkind can
-        be 'plot', 'save', 'simulation', 'optimization', 'spinsystem' or
-        'variation'.
+        Kind of the profile. Not case sensitive.
 
     Returns
     -------
-    name : str
-        String with the available profile name e.g. 'profile_12'.
+    str
+        Available profile name, e.g. 'profile_12'.
 
     """
-    name = "profile_"
     suffix = "" if pkind == "plot" else ".ini"
-    profile_number = 0
-    profile_number_used = True
+    folder = PROFILE_ROOT / pkind
 
-    while profile_number_used:
-        profile_number += 1
-        for root, dirs, files in os.walk(
-            os.path.join(sys.prefix, "easypairspin", "profiles", pkind)
-        ):
-            counter = 0
-            for file in files:
-                if file.endswith("profile_" + str(profile_number) + suffix):
-                    counter += 1
+    existing: set[int] = set()
+    if folder.is_dir():
+        for fp in folder.glob("profile_*" + suffix):
+            stem = fp.stem if suffix else fp.name
+            num_part = stem.replace("profile_", "")
+            try:
+                existing.add(int(num_part))
+            except ValueError:
+                continue
 
-            profile_number_used = counter
+    number = 1
+    while number in existing:
+        number += 1
 
-    name += str(profile_number)
+    return "profile_{}".format(number)
 
-    return name
+
+def _validate_config(config: ConfigObj, pname: str) -> None:
+    """Validate *config* against its configspec and raise on failure.
+
+    Only sections and keys present before validation are checked.
+    Keys with the value ``"None"`` (serialised Python ``None``) are
+    skipped, as they represent optional fields that were not set.
+    """
+    validator = validate.Validator()
+    present = {s: set(config[s].keys()) for s in config.sections}
+    result = config.validate(validator, preserve_errors=True)
+    if result is not True:
+        for section, keys in present.items():
+            section_result = result.get(section, True)
+            if section_result is True:
+                continue
+            if isinstance(section_result, dict):
+                failed = {
+                    k: v
+                    for k, v in section_result.items()
+                    if k in keys and v is not True and config[section].get(k) != "None"
+                }
+                if failed:
+                    raise ValueError(
+                        "Profile '{}' failed configspec validation "
+                        "in section '{}': {}".format(pname, section, failed)
+                    )
+            elif section_result is not True:
+                raise ValueError(
+                    "Profile '{}' failed configspec validation in section '{}'.".format(
+                        pname, section
+                    )
+                )
 
 
 def load_profile(pname: str, pkind: str) -> dict:
     """
-    Load a given plotting profile.
+    Load a profile from a config file.
 
     Parameters
     ----------
@@ -499,93 +472,96 @@ def load_profile(pname: str, pkind: str) -> dict:
         Name of the profile. Case sensitive. Either with .ini or not.
         E. g.: load_profile('test') or load_profile('test.ini').
     pkind : str
-        Give the kind of the profile. Not case sensitive. pkind can be 'save',
-        'simulation', 'optimization', 'spinsystem' or 'variation'.
+        Kind of the profile. Not case sensitive. Can be 'simulation',
+        'optimization', 'spinsystem' or 'variation'.
+
+    Raises
+    ------
+    ValueError
+        If *pkind* is not valid or the profile fails configspec validation.
 
     Returns
     -------
-    profile: dict
+    dict
         Loaded profile as a dictionary.
 
     """
+    pkind = _normalize_pkind(pkind)
+
     if pname.endswith(".ini"):
         pname = pname[:-4]
 
-    path_to_profile = PROFILE_ROOT / pkind / (pname + ".ini")
-    path_to_configspec = PROFILE_ROOT / pkind / "configspec.ini"
+    root = PROFILE_ROOT
+    path_to_profile = root / pkind / (pname + ".ini")
+    path_to_configspec = root / pkind / "configspec.ini"
 
     config = ConfigObj(
         str(path_to_profile), configspec=str(path_to_configspec), file_error=True
     )
-    validator = validate.Validator()
-    config.validate(validator)
+    _validate_config(config, pname)
 
-    profile = {}
-
+    profile: dict[str, dict] = {}
     for section in config.sections:
         profile[section] = config[section]
 
     return profile
 
 
-def load_plot_profile(pname: str) -> dict:
+def load_plot_profile(pname: str | None) -> dict:
     """
-    Load a plotting profile from a mplstylesheet.
+    Load a plotting profile from an mplstylesheet.
 
     Parameters
     ----------
-    pname : str
-        Name of the profile. Case sensitive.
+    pname : str or None
+        Name of the profile. Case sensitive. If None or a built-in
+        matplotlib style, the default stylesheet is loaded.
 
     Returns
     -------
     dict
-        Contains the settings for the plotting functions.
+        Settings for the plotting functions.
 
     """
     if pname is None or pname in style.available:
         pname = "default_stylesheet"
 
-    path_to_profile = os.path.join(
-        sys.prefix, "easypairspin", "profiles", "plot", pname
+    path_to_profile = PROFILE_ROOT / "plot" / pname
+
+    profile: dict[str, object] = {}
+    valid_keys = (
+        "percentage_mode",
+        "xlim",
+        "ylim",
+        "zlim",
+        "xlabel",
+        "ylabel",
+        "zlabel",
+        "show_title",
+        "title",
+        "legend",
+        "colorbar",
     )
 
-    profile = {}
-    with open(path_to_profile, "r") as file:
-        for line in file.readlines():
-            if line.startswith("#"):
+    with open(str(path_to_profile), "r") as file:
+        for raw_line in file:
+            if raw_line.startswith("#") or not raw_line.strip():
                 continue
+            parts = raw_line.strip().split(":", 1)
+            if len(parts) != 2:
+                continue
+            key, value = parts[0].strip(), parts[1].split("#")[0].strip()
+            if key not in valid_keys:
+                continue
+            if "lim" in key and len(key) == 4:
+                bounds = value.split(",")
+                if len(bounds) != 2:
+                    raise ValueError("Malformed bounds for '{}': {}".format(key, value))
+                profile[key] = [float(bounds[0]), float(bounds[1])]
+            elif ("label" in key and len(key) == 6) or key == "title":
+                profile[key] = value.strip('"').strip("'")
             else:
-                line = line.strip().split(":")
-                if line[0] in (
-                    "percentage_mode",
-                    "xlim",
-                    "ylim",
-                    "zlim",
-                    "xlabel",
-                    "ylabel",
-                    "zlabel",
-                    "show_title",
-                    "title",
-                    "legend",
-                    "colorbar",
-                ):
-                    if "lim" in line[0] and len(line[0]) == 4:
-                        bounds = line[1].split("#")[0].strip()
-                        bounds = bounds.split(",")
-                        lb = float(bounds[0])
-                        ub = float(bounds[1])
-                        profile[line[0]] = [lb, ub]
-                    elif ("label" in line[0] and len(line[0]) == 6) or (
-                        line[0] == "title"
-                    ):
-                        label = line[1].split("#")[0].strip()
-                        label = label.strip('"').strip("'")
-                        profile[line[0]] = label
-                    else:
-                        boolean = line[1].split("#")[0].strip()
-                        boolean = boolean.strip('"').strip("'")
-                        profile[line[0]] = bool(strtobool(boolean))
+                profile[key] = bool(strtobool(value.strip('"').strip("'")))
 
     return profile
 
@@ -596,8 +572,8 @@ def new_plot_profile() -> dict:
 
     Returns
     -------
-    default_profile: dict
-        Dictionary with default settings for plottings.
+    dict
+        Dictionary with default settings for plotting.
 
     """
     default_profile = {
@@ -623,7 +599,7 @@ def new_spinsystem_profile() -> dict:
 
     Returns
     -------
-    default_profile: dict
+    dict
         Dictionary with default settings for a spinsystem.
 
     """
@@ -694,7 +670,7 @@ def new_variation_profile() -> dict:
 
     Returns
     -------
-    default_profile: dict
+    dict
         Dictionary with default settings for variation.
 
     """
@@ -736,25 +712,9 @@ def new_variation_profile() -> dict:
             "population": [0.0, 0.0, 0.0],
             "freq_mw": 0.0,
             "amplitude": 0,
+            "fit_distribution": False,
         }
     }
-
-    return default_profile
-
-
-def new_save_profile() -> dict:
-    """
-    Get a default save profile.
-
-    Returns
-    -------
-    default_profile: dict
-        Dictionary with default settings for saving.
-
-    """
-    default_profile = {"main": {}}
-    # TODO Profil verwenden um Projektordner festzulegen -> Speicherort für
-    # Bilder, Simulations/Optimierungsergebnisse, out-Files etc.
 
     return default_profile
 
@@ -765,7 +725,7 @@ def new_optimization_profile() -> dict:
 
     Returns
     -------
-    default_profile: dict
+    dict
         Dictionary with default settings for optimization routines.
 
     """
@@ -862,7 +822,7 @@ def new_simulation_profile() -> dict:
 
     Returns
     -------
-    default_profile: dict
+    dict
         Dictionary with default settings for simulation profiles.
 
     """

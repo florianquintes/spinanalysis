@@ -522,19 +522,11 @@ def _get_style_path(mplstylesheet: str = None) -> str:
 
     """
     if mplstylesheet is None:
-        style = os.path.join(
-            sys.prefix,
-            "easypairspin",
-            "profiles",
-            "plot",
-            "default_stylesheet",
-        )
+        style = str(profiles.PROFILE_ROOT / "plot" / "default_stylesheet")
     elif mplstylesheet in plt.style.available:
         style = mplstylesheet
     else:
-        style = os.path.join(
-            sys.prefix, "easypairspin", "profiles", "plot", mplstylesheet
-        )
+        style = str(profiles.PROFILE_ROOT / "plot" / mplstylesheet)
 
     return style
 

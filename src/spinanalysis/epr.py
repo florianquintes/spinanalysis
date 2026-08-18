@@ -627,7 +627,7 @@ class Spinsystem(EPR_Parameters):
         """
         Load a spinsystem from a profile.
 
-        Load the settings from [sys.prefix]/easypairspin/profiles/spinsystem/
+        Load the settings from ~/.config/spinanalysis/profiles/spinsystem/
         [profile_name].ini into the Spinsystem object. Overwrites previous
         settings.
 
@@ -1145,7 +1145,7 @@ class Variation(EPR_Parameters):
         """
         Load a variation object from a profile.
 
-        Load the settings from [sys.prefix]/easypairspin/profiles/variation/
+        Load the settings from ~/.config/spinanalysis/profiles/variation/
         [profile_name].ini into the Variation object. Overwrites previous
         settings.
 
@@ -1334,8 +1334,8 @@ class SimulationOptions(_MutableModel):
     Attributes
     ----------
     routine: str
-        Name of the simulation routine which will be used by easypairspin() and
-        easypairspin_optimize().
+        Name of the simulation routine which will be used by spinanalysis() and
+        spinanalysis_optimize().
     knots: int
         Number of knots used for spherical grid. The default is 20.
     grid_points: int
@@ -1524,7 +1524,7 @@ class SimulationOptions(_MutableModel):
         """
         Load simulation options from a profile.
 
-        Load the settings from [sys.prefix]/easypairspin/profiles/simulation/
+        Load the settings from ~/.config/spinanalysis/profiles/simulation/
         [profile_name].ini into the SimulationOptions object. Overwrites
         previous settings.
 
@@ -1604,7 +1604,7 @@ class FittingOptions(_MutableModel):
     ----------
     routine : str
         Name of the optimization routine which will be used by
-        easypairspin_optimize().
+        spinanalysis_optimize().
     method : str
         Name of the optimization method used in the scipy.optimize routines.
     x0 : numpy.array, np.float64
@@ -1880,7 +1880,7 @@ class FittingOptions(_MutableModel):
         """
         Load fitting options from a profile.
 
-        Load the settings from [sys.prefix]/easypairspin/profiles/optimization/
+        Load the settings from ~/.config/spinanalysis/profiles/optimization/
         [profile_name].ini into the FittingOptions object. Overwrites previous
         settings. Only loads the section given in ['main']['routine'].
 
