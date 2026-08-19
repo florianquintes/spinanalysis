@@ -284,33 +284,36 @@ def guess2Sys(x: NDArray[np.float64], Sys: Any, Var: Any, SimOpt: Any) -> Any:
     Sys_mod = deepcopy(Sys)
 
     n = 0
-    for key in vars(Var):
+    for key in Var.__dict__:
         if key in Var.non_vars:
             pass
         elif key in Var.single_vars:
-            if vars(Var)[key] > 0:
-                vars(Sys_mod)[key] = x[n]
+            if getattr(Var, key) > 0:
+                setattr(Sys_mod, key, x[n])
                 n += 1
         else:
-            for i, parameter in enumerate(vars(Var)[key]):
+            var_values = getattr(Var, key)
+            sys_values = getattr(Sys_mod, key)
+            for i, parameter in enumerate(var_values):
                 if parameter > 0:
-                    vars(Sys_mod)[key][i] = x[n]
+                    sys_values[i] = x[n]
                     n += 1
 
     if hasattr(Var, "isotropic"):
         for par in Var.isotropic:
-            vars(Sys_mod)[par][1] = vars(Sys_mod)[par][0]
-            vars(Sys_mod)[par][2] = vars(Sys_mod)[par][0]
+            arr = getattr(Sys_mod, par)
+            arr[1] = arr[0]
+            arr[2] = arr[0]
 
-    for key in vars(Sys):
+    for key in Sys.__dict__:
         if key.startswith("frame_group"):
-            for i, frame in enumerate(vars(Sys)[key]):
+            for i, frame in enumerate(getattr(Sys, key)):
                 if not frame.endswith("_frame"):
                     frame = frame + "_frame"
                 if i == 0:
-                    reference_frame = vars(Sys_mod)[frame]
+                    reference_frame = getattr(Sys_mod, frame)
                 else:
-                    vars(Sys_mod)[frame] = reference_frame
+                    setattr(Sys_mod, frame, reference_frame)
 
     if Var.fit_distribution:
         pos = np.zeros(Sys.distribution_order)

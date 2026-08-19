@@ -5,7 +5,7 @@ description = "A high-level Python framework for the analysis of electron parama
 readme = "README.md"
 license = { file = "LICENSE" }
 authors = [
-    { name = "florianquintes", email = "florian.quintes@pc.uni-freiburg.de" }
+    { name = "Florian Quintes", email = "florian.quintes@pc.uni-freiburg.de" }
 ]
 requires-python = ">=3.13"
 dependencies = [
