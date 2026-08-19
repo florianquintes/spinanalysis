@@ -12,3 +12,6 @@ docs/build/
 
 # Virtual environments
 .venv
+
+# Extracted test data (kept as ZIP archive)
+tests/data/test_loading/
