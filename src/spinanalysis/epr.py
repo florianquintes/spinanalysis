@@ -812,7 +812,10 @@ class Experimental(_MutableModel):
             self.spec_sim = np.zeros(self.B_z.shape, dtype="complex128")
 
     def get_linear_time_axis(
-        self, t_min: float | None = None, t_max: float | None = None, t_points: "int | None" = None
+        self,
+        t_min: float | None = None,
+        t_max: float | None = None,
+        t_points: "int | None" = None,
     ) -> None:
         """
         Get a linear time axis for transient simulations.
@@ -1155,7 +1158,6 @@ class Variation(EPR_Parameters):
         self.get_number_of_genes()
         self.needed_digits = self.number_of_genes * 12
 
-
     def get_number_of_genes(self) -> None:
         """Determine number of parameters which get varied."""
         self.number_of_genes = 0
@@ -1165,7 +1167,6 @@ class Variation(EPR_Parameters):
                     self.number_of_genes += 1
             else:
                 self.number_of_genes += int(np.count_nonzero(np.asarray(value) > 0.0))
-
 
     def get_variation_array(self) -> None:
         """Put all variation ranges in one 1-D array."""
@@ -1183,11 +1184,9 @@ class Variation(EPR_Parameters):
                         self.variation_array[i] = parameter
                         i += 1
 
-
     def update_digits(self) -> None:
         """Update number of needed_digits."""
         self.get_needed_digits()
-
 
     def get_boundaries(self, Sys: object) -> None:
         """
@@ -1240,7 +1239,6 @@ class Variation(EPR_Parameters):
                 self.boundaries.append(b_int)
                 self.boundaries.append(b_sigma)
                 self.boundaries.append(b_pos)
-
 
     def _variation_fields(self) -> Any:
         """Return variation fields in their stable declaration order."""

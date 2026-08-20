@@ -95,9 +95,7 @@ def reduce_offset(x: np.ndarray) -> np.ndarray:
     return x_shifted
 
 
-def background_corr(
-    x: np.ndarray, y: np.ndarray, mode: str = "biexp"
-) -> np.ndarray:
+def background_corr(x: np.ndarray, y: np.ndarray, mode: str = "biexp") -> np.ndarray:
     """Perform a background correction of measured data.
 
     Available correction modes are: ``biexp``, ``exp``, ``lin``,
@@ -307,6 +305,6 @@ def reconstruct(x: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
 
     y_pred = np.roll(y_pred[nlag:], nlag)
     y_flip = y_pred
-    y_flip = np.concatenate((y[::-1], y_flip[len(y):]))
+    y_flip = np.concatenate((y[::-1], y_flip[len(y) :]))
 
     return x_new, y_flip[::-1]

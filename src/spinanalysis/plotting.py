@@ -489,7 +489,9 @@ def _set_axis(
     return ax
 
 
-def _set_figure(ax: plt.Axes, figure_par: dict, mpl_stylesheet: str | None = None) -> plt.Axes:
+def _set_figure(
+    ax: plt.Axes, figure_par: dict, mpl_stylesheet: str | None = None
+) -> plt.Axes:
     """Set up the figure of a plot created by matplotlib.
 
     Parameters
