@@ -1,3 +1,12 @@
+"""Tests for the profile management functions in :mod:`spinanalysis.profiles`.
+
+© M. Sc. Florian Quintes, 2026
+
+@contact: florian.quintes@pc.uni.freiburg.de
+
+@author: Florian Quintes
+"""
+
 import shutil
 import zipfile
 from pathlib import Path

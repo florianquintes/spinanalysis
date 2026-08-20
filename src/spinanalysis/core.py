@@ -5,7 +5,7 @@
 The module exposes :func:`simulate` for generating spectra with the supported
 simulation routines and :func:`optimize` for fitting spin-system parameters.
 
-© M. Sc. Florian Quintes, 2021-2026
+© M. Sc. Florian Quintes, 2026
 
 @contact: florian.quintes@pc.uni.freiburg.de
 

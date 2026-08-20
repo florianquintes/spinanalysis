@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
+"""Read EPR data from BRUKER BES3T, ESP transient, MATLAB, and text formats.
+
 © M. Sc. Florian Quintes, 2026
 
 @contact: florian.quintes@pc.uni.freiburg.de

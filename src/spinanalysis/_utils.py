@@ -1,3 +1,13 @@
+"""Internal utility functions shared across the spinanalysis package.
+
+© M. Sc. Florian Quintes, 2026
+
+@contact: florian.quintes@pc.uni.freiburg.de
+
+@author: Florian Quintes
+"""
+
+
 def strtobool(val):
     """Convert a string representation of truth to true (1) or false (0).
 

@@ -1,3 +1,12 @@
+"""Tests for the EPR data loading routines in :mod:`spinanalysis.loading`.
+
+© M. Sc. Florian Quintes, 2026
+
+@contact: florian.quintes@pc.uni.freiburg.de
+
+@author: Florian Quintes
+"""
+
 import warnings
 from pathlib import Path
 

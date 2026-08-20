@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-© M. Sc. Florian Quintes, 2021-2026
+"""Write simulation results, figures, and output files to disk.
+
+© M. Sc. Florian Quintes, 2026
 
 @contact: florian.quintes@pc.uni.freiburg.de
 

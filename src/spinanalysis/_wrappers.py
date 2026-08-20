@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-© M. Sc. Florian Quintes, 2021-2022
+"""Provide decorators and multicore helpers for simulation routines.
+
+© M. Sc. Florian Quintes, 2026
 
 @contact: florian.quintes@pc.uni.freiburg.de
 

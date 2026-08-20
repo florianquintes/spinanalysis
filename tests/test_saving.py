@@ -1,3 +1,12 @@
+"""Tests for the output and saving routines in :mod:`spinanalysis.saving`.
+
+© M. Sc. Florian Quintes, 2026
+
+@contact: florian.quintes@pc.uni.freiburg.de
+
+@author: Florian Quintes
+"""
+
 import datetime
 from unittest.mock import patch
 

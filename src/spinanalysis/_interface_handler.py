@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-(c) M. Sc. Florian Quintes, 2021-2026
+"""Bridge between spinanalysis objects and scipy.optimize routines.
+
+© M. Sc. Florian Quintes, 2026
 
 @contact: florian.quintes@pc.uni.freiburg.de
 

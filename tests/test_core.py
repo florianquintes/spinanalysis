@@ -4,6 +4,12 @@ The external simulation packages (``mkl``, ``genetic_radpair``, ``oop_eseem``,
 ``teacups``, ``static_radical_pair``, ``PySpin``) are mocked via
 ``sys.modules`` so that ``spinanalysis.core`` and
 ``spinanalysis._interface_handler`` can be imported in a clean environment.
+
+© M. Sc. Florian Quintes, 2026
+
+@contact: florian.quintes@pc.uni.freiburg.de
+
+@author: Florian Quintes
 """
 
 import sys
