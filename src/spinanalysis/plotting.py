@@ -1,72 +1,50 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-© M. Sc. Florian Quintes, 2021-2022
+"""Render EPR spectra as 2D, 3D, heatmap, and shifted-line plots.
+
+© M. Sc. Florian Quintes, 2026
 
 @contact: florian.quintes@pc.uni.freiburg.de
 
 @author: Florian Quintes
 """
 
-from matplotlib import cm
+from typing import Any
 import matplotlib.pyplot as plt
 import numpy as np
-import os
-import sys
+import warnings
+from contextlib import contextmanager
 from spinanalysis import profiles
 
 
-class HiddenPrints:
-    """Supress Error Messages in a context manager."""
-
-    def __enter__(self):
-        """Deactivate the error stream when entering the context manager."""
-        self._original_stderr = sys.stderr
-        sys.stderr = open(os.devnull, "w")
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        """Activate the error stream when leaving the context manager."""
-        sys.stderr.close()
-        sys.stderr = self._original_stderr
+@contextmanager
+def _suppress_warnings():
+    """Suppress warnings in a context manager."""
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        yield
 
 
-def plot_2D(
-    x: np.array,
-    y: np.array,
-    mpl_stylesheet: str = "default_stylesheet",
-    labels: list[str] = "no_label",
-    ax: object = None,
-    **kwargs,
-) -> object:
-    """
-    Plot the given y value(s) against the given x array.
+def _prepare_style(mpl_stylesheet: str, kwargs: dict) -> tuple[dict, list]:
+    """Load the plot profile and build the style list.
 
-    Using matplotlib.pylab.plot(). The plot can be configured via plot
-    profiles.
+    Profile keys that also appear in *kwargs* are moved from *kwargs*
+    into the returned profile dict, so that the caller's *kwargs*
+    only contains keys meant for the matplotlib plotting function.
 
     Parameters
     ----------
-    x : np.array
-        Array with values for the x axis.
-    y : np.array
-        1D-Array or 2D-Array with values for y axis.
-    mpl_stylesheet : str, optional
-        Name of the matplotlib style sheet (see: matplotlib documentation).
-        If no style sheet is given, the styles defined in the plotting profile
-        will be used. The default is None.
-    labels : list[str], optional
-        List of labels for the legend. If only one label is given, all labels
-        will be the same. The default is 'no_label'.
-    ax : object, optional
-        Axes object, used for the PySpin GUI.
-    **kwargs : optional
-        Keyword arguments passed to the matplotlib plot function. Overrides the
-        arguments given in the stylesheet.
+    mpl_stylesheet : str
+        Name of the matplotlib style sheet / plotting profile.
+    kwargs : dict
+        Keyword arguments from the caller; modified in place.
 
     Returns
     -------
-    fig : object
-        Figure object of matplotlib.pylab.
+    profile : dict
+        Plotting profile with kwargs overrides applied.
+    style_list : list
+        List of style paths suitable for ``plt.style.context``.
 
     """
     profile = profiles.load_plot_profile(mpl_stylesheet)
@@ -74,19 +52,60 @@ def plot_2D(
     for k in profile.keys() & kwargs.keys():
         kwargs.pop(k)
     style = _get_style_path(mpl_stylesheet)
-    default_styles = _load_default_styles()
-    default_styles.append(style)
+    style_list = _load_default_styles()
+    style_list.append(style)
+    return profile, style_list
 
-    with HiddenPrints():
-        with plt.style.context(default_styles):
+
+def plot_2D(
+    x: np.ndarray,
+    y: np.ndarray,
+    mpl_stylesheet: str = "default_stylesheet",
+    labels: list[str] | str = "no_label",
+    ax: plt.Axes | None = None,
+    **kwargs: Any,
+) -> plt.Figure:
+    """Plot the given y value(s) against the given x array.
+
+    Using matplotlib.pylab.plot(). The plot can be configured via plot
+    profiles.
+
+    Parameters
+    ----------
+    x : np.ndarray
+        Array with values for the x axis.
+    y : np.ndarray
+        1D-Array or 2D-Array with values for y axis.
+    mpl_stylesheet : str, default is ``'default_stylesheet'``
+        Name of the matplotlib style sheet (see: matplotlib documentation).
+        If no style sheet is given, the styles defined in the plotting profile
+        will be used.
+    labels : list[str] or str, default is ``'no_label'``
+        List of labels for the legend. If only one label is given, all labels
+        will be the same.
+    ax : plt.Axes, optional
+        Axes object, used for the PySpin GUI.
+    **kwargs
+        Keyword arguments passed to the matplotlib plot function. Overrides the
+        arguments given in the stylesheet.
+
+    Returns
+    -------
+    fig : plt.Figure
+        Figure object of matplotlib.
+
+    """
+    profile, style_list = _prepare_style(mpl_stylesheet, kwargs)
+
+    with _suppress_warnings():
+        with plt.style.context(style_list):
             if ax is None:
-                # [NEW FIGURE]
                 fig, ax = plt.subplots()
             else:
-                fig, _ = plt.subplots()
+                fig = ax.figure
 
             # [LABELS]
-            if y.ndim > 1 and not (type(labels) is list):
+            if y.ndim > 1 and not isinstance(labels, list):
                 labels = _get_label_list(y.shape[0], labels)
 
             # [PLOT DATA]
@@ -98,59 +117,52 @@ def plot_2D(
 
             # [Axes]
             _set_axis(ax, profile, x, y)
-            _set_figure(ax, profile, mplstylesheet=mpl_stylesheet)
+            _set_figure(ax, profile, mpl_stylesheet=mpl_stylesheet)
 
     return fig
 
 
 def shifted_2D(
-    x: np.array,
-    Y: np.array,
+    x: np.ndarray,
+    Y: np.ndarray,
     mpl_stylesheet: str = "default_stylesheet",
-    labels: list[str] = "no_label",
-    ax: object = None,
-    **kwargs,
-) -> object:
-    """
-    Plot multiples lines in 2D, shifted vertically.
+    labels: list[str] | str = "no_label",
+    ax: plt.Axes | None = None,
+    **kwargs: Any,
+) -> plt.Figure:
+    """Plot multiple lines in 2D, shifted vertically.
 
     The plot can be configured via plot profiles.
 
     Parameters
     ----------
-    x : np.array
+    x : np.ndarray
         Array with values for the x axis.
-    Y : np.array
+    Y : np.ndarray
         2D-Array with values for y axis.
-    mpl_stylesheet : str, optional
+    mpl_stylesheet : str, default is ``'default_stylesheet'``
         Name of the matplotlib style sheet (see: matplotlib documentation).
         If no style sheet is given, the styles defined in the plotting profile
-        will be used. The default is None.
-    labels : list[str], optional
+        will be used.
+    labels : list[str] or str, default is ``'no_label'``
         List of labels for the legend. If only one label is given, all labels
-        will be the same. The default is 'no_label'.
-    ax : object, optional
+        will be the same.
+    ax : plt.Axes, optional
         Axes object, used for the PySpin GUI.
-    **kwargs : optional
+    **kwargs
         Keyword arguments passed to the matplotlib plot function. Overrides the
         arguments given in the stylesheet.
 
     Returns
     -------
-    fig : object
-        Figure object of matplotlib.pylab.
+    fig : plt.Figure
+        Figure object of matplotlib.
 
     """
-    profile = profiles.load_plot_profile(mpl_stylesheet)
-    profile.update((k, kwargs[k]) for k in profile.keys() & kwargs.keys())
-    for k in profile.keys() & kwargs.keys():
-        kwargs.pop(k)
-    style = _get_style_path(mpl_stylesheet)
-    default_styles = _load_default_styles()
-    default_styles.append(style)
+    profile, style_list = _prepare_style(mpl_stylesheet, kwargs)
 
-    with HiddenPrints():
-        with plt.style.context(default_styles):
+    with _suppress_warnings():
+        with plt.style.context(style_list):
             # [NORMALIZE DATA]
             Y = Y / np.max(np.abs(Y))
 
@@ -159,13 +171,12 @@ def shifted_2D(
             Y += shift_matrix
 
             if ax is None:
-                # [NEW FIGURE]
                 fig, ax = plt.subplots()
             else:
-                fig = None
+                fig = ax.figure
 
             # [LABELS]
-            if not type(labels) is list:
+            if not isinstance(labels, list):
                 labels = _get_label_list(Y.shape[0], labels)
 
             # [PLOT DATA]
@@ -174,220 +185,190 @@ def shifted_2D(
 
             # [AXES]
             _set_axis(ax, profile, x, Y, y_axis=False)
-            _set_figure(ax, profile, mplstylesheet=mpl_stylesheet)
+            _set_figure(ax, profile, mpl_stylesheet=mpl_stylesheet)
 
     return fig
 
 
 def plot_3D(
-    x: np.array,
-    y: np.array,
-    Z: np.array,
+    x: np.ndarray,
+    y: np.ndarray,
+    Z: np.ndarray,
     mpl_stylesheet: str = "default_stylesheet",
     labels: str = "no_label",
-    ax: object = None,
-    **kwargs,
-) -> object:
-    """
-    Plot 2D Data in 3D using matplotlib.pylab.plot_surface().
+    ax: plt.Axes | None = None,
+    **kwargs: Any,
+) -> plt.Figure:
+    """Plot 2D data in 3D using matplotlib.pylab.plot_surface().
 
     The plot can be configured via plot profiles.
 
     Parameters
     ----------
-    x : np.array
+    x : np.ndarray
         Array with values for the x axis.
-    y : np.array
+    y : np.ndarray
         Array with values for the y axis.
-    Z : np.array
+    Z : np.ndarray
         2D-Array with intensities.
-    mpl_stylesheet : str, optional
+    mpl_stylesheet : str, default is ``'default_stylesheet'``
         Name of the matplotlib style sheet (see: matplotlib documentation).
         If no style sheet is given, the styles defined in the plotting profile
-        will be used. The default is None.
-    labels : str, optional
-        At the moment no function. The default is 'no_label'. # TODO
-    ax : object, optional
+        will be used.
+    labels : str, default is ``'no_label'``
+        At the moment no function.
+    ax : plt.Axes, optional
         Axes object, used for the PySpin GUI.
-    **kwargs : optional
+    **kwargs
         Keyword arguments passed to the matplotlib plot function. Overrides the
         arguments given in the stylesheet.
 
     Returns
     -------
-    fig : object
-        Figure object of matplotlib.pylab.
+    fig : plt.Figure
+        Figure object of matplotlib.
 
     """
-    profile = profiles.load_plot_profile(mpl_stylesheet)
-    profile.update((k, kwargs[k]) for k in profile.keys() & kwargs.keys())
-    for k in profile.keys() & kwargs.keys():
-        kwargs.pop(k)
-    style = _get_style_path(mpl_stylesheet)
-    default_styles = _load_default_styles()
-    default_styles.append(style)
+    profile, style_list = _prepare_style(mpl_stylesheet, kwargs)
 
-    kwargs_ = {"cmap": cm.coolwarm, "antialiased": True, "linewidth": 0}
+    kwargs_ = {"cmap": "coolwarm", "antialiased": True, "linewidth": 0}
     kwargs_.update(kwargs)
 
-    with HiddenPrints():
-        with plt.style.context(default_styles):
+    with _suppress_warnings():
+        with plt.style.context(style_list):
             if ax is None:
-                # [NEW FIGURE]
                 fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
             else:
-                fig = None
+                fig = ax.figure
 
             # [GRID]
             X, Y = np.meshgrid(x, y)
 
             # [PLOT DATA]
-            try:
-                ax.plot_surface(X, Y, Z, **kwargs_)
-            except ValueError:
-                ax.plot_surface(X, Y, Z.T, **kwargs_)
+            Z = _align_z(x, y, Z)
+            ax.plot_surface(X, Y, Z, **kwargs_)
 
             # [AXES]
             _set_axis(ax, profile, X, Y, Z)
-            _set_figure(ax, profile, mplstylesheet=mpl_stylesheet)
+            _set_figure(ax, profile, mpl_stylesheet=mpl_stylesheet)
 
     return fig
 
 
 def plot_3D_multiple_lines(
-    x: np.array,
-    y: np.array,
-    Z: np.array,
+    x: np.ndarray,
+    y: np.ndarray,
+    Z: np.ndarray,
     mpl_stylesheet: str = "default_stylesheet",
-    ax: object = None,
-    **kwargs,
-) -> object:
-    """
-    Plot 2D Data in 3D using matplotlib.pylab.plot().
+    ax: plt.Axes | None = None,
+    **kwargs: Any,
+) -> plt.Figure:
+    """Plot 2D data in 3D using matplotlib.pylab.plot().
 
     Each y trace as a single line plot. The plot can be configured via plot
     profiles.
 
     Parameters
     ----------
-    x : np.array
+    x : np.ndarray
         Array with values for the x axis.
-    y : np.array
+    y : np.ndarray
         Array with values for the y axis.
-    Z : np.array
+    Z : np.ndarray
         2D-Array with intensities.
-    mpl_stylesheet : str, optional
+    mpl_stylesheet : str, default is ``'default_stylesheet'``
         Name of the matplotlib style sheet (see: matplotlib documentation).
         If no style sheet is given, the styles defined in the plotting profile
-        will be used. The default is None.
-    ax : object, optional
+        will be used.
+    ax : plt.Axes, optional
         Axes object, used for the PySpin GUI.
-    **kwargs : optional
+    **kwargs
         Keyword arguments passed to the matplotlib plot function. Overrides the
         arguments given in the stylesheet.
 
     Returns
     -------
-    fig : object
-        Figure object of matplotlib.pylab.
+    fig : plt.Figure
+        Figure object of matplotlib.
 
     """
-    profile = profiles.load_plot_profile(mpl_stylesheet)
-    profile.update((k, kwargs[k]) for k in profile.keys() & kwargs.keys())
-    for k in profile.keys() & kwargs.keys():
-        kwargs.pop(k)
-    style = _get_style_path(mpl_stylesheet)
-    default_styles = _load_default_styles()
-    default_styles.append(style)
+    profile, style_list = _prepare_style(mpl_stylesheet, kwargs)
 
-    with HiddenPrints():
-        with plt.style.context(default_styles):
+    with _suppress_warnings():
+        with plt.style.context(style_list):
             if ax is None:
-                # [NEW FIGURE]
                 fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
             else:
-                fig = None
+                fig = ax.figure
 
             # [PLOT DATA]
-            # TODO: Hier muss drüber nachgedacht werden, wann Z transponiert werden
-            # muss, damit man die x- und y-Achse in beliebiger Reihenfolge geben
-            # kann.
+            Z = _align_z(x, y, Z)
             X = np.ones((len(y), len(x))) * x
             X = X.T
-            for dataset in range(len(Z.T)):
+            for dataset in range(Z.shape[1]):
                 ax.plot(X[dataset], y, Z[:, dataset], **kwargs)
 
             # [AXES]
             _set_axis(ax, profile, x, y, Z)
-            _set_figure(ax, profile, mplstylesheet=mpl_stylesheet)
+            _set_figure(ax, profile, mpl_stylesheet=mpl_stylesheet)
 
     return fig
 
 
 def heatmap(
-    x: np.array,
-    y: np.array,
-    Z: np.array,
+    x: np.ndarray,
+    y: np.ndarray,
+    Z: np.ndarray,
     mpl_stylesheet: str = "default_stylesheet",
-    ax: object = None,
-    **kwargs,
-) -> object:
-    """
-    Plot 2D Data as a heatmap using matplotlib.pylab.pcolormesh().
+    ax: plt.Axes | None = None,
+    **kwargs: Any,
+) -> plt.Figure:
+    """Plot 2D data as a heatmap using matplotlib.pylab.pcolormesh().
 
     The plot can be configured via plot profiles.
 
     Parameters
     ----------
-    x : np.array
+    x : np.ndarray
         Array with values for the x axis.
-    y : np.array
+    y : np.ndarray
         Array with values for the y axis.
-    Z : np.array
+    Z : np.ndarray
         2D-Array with intensities.
-    mpl_stylesheet : str, optional
+    mpl_stylesheet : str, default is ``'default_stylesheet'``
         Name of the matplotlib style sheet (see: matplotlib documentation).
         If no style sheet is given, the styles defined in the plotting profile
-        will be used. The default is None.
-    ax : object, optional
+        will be used.
+    ax : plt.Axes, optional
         Axes object, used for the PySpin GUI.
-    **kwargs : optional
+    **kwargs
         Keyword arguments passed to the matplotlib plot function. Overrides the
         arguments given in the stylesheet.
 
     Returns
     -------
-    fig : object
-        Figure object of matplotlib.pylab.
+    fig : plt.Figure
+        Figure object of matplotlib.
 
     """
-    profile = profiles.load_plot_profile(mpl_stylesheet)
-    profile.update((k, kwargs[k]) for k in profile.keys() & kwargs.keys())
-    for k in profile.keys() & kwargs.keys():
-        kwargs.pop(k)
-    style = _get_style_path(mpl_stylesheet)
-    default_styles = _load_default_styles()
-    default_styles.append(style)
+    profile, style_list = _prepare_style(mpl_stylesheet, kwargs)
 
     kwargs_ = {"cmap": "RdBu", "shading": "auto"}
     kwargs_.update(kwargs)
 
-    with HiddenPrints():
-        with plt.style.context(default_styles):
+    with _suppress_warnings():
+        with plt.style.context(style_list):
             if ax is None:
-                # [NEW FIGURE]
                 fig, ax = plt.subplots()
             else:
-                fig = None
+                fig = ax.figure
 
             # [GRID]
             X, Y = np.meshgrid(x, y)
 
             # [PLOT DATA]
-            try:
-                c = ax.pcolormesh(X, Y, Z, **kwargs_)
-            except TypeError:
-                c = ax.pcolormesh(X, Y, Z.T, **kwargs_)
+            Z = _align_z(x, y, Z)
+            c = ax.pcolormesh(X, Y, Z, **kwargs_)
 
             # [PLOT COLORBAR]
             if profile["colorbar"]:
@@ -395,16 +376,49 @@ def heatmap(
 
             # [AXES]
             _set_axis(ax, profile, X, Y)
-            _set_figure(ax, profile, mplstylesheet=mpl_stylesheet)
+            _set_figure(ax, profile, mpl_stylesheet=mpl_stylesheet)
 
     return fig
 
 
-def _get_shift_matrix(shape: tuple[int, int]) -> np.array:
-    """
-    Create a matrix to shift the single lines vertically.
+def _align_z(x: np.ndarray, y: np.ndarray, Z: np.ndarray) -> np.ndarray:
+    """Transpose Z if needed so that Z.shape == (len(y), len(x)).
 
-    Needed for plot_shifted_2D().
+    ``np.meshgrid(x, y)`` returns arrays with shape ``(len(y), len(x))``,
+    so matplotlib plotting functions expect Z to match this orientation.
+    If Z has the transposed shape ``(len(x), len(y))`` it is returned
+    transposed.  Any other shape raises ``ValueError``.
+
+    Parameters
+    ----------
+    x : np.ndarray
+        Array with values for the x axis.
+    y : np.ndarray
+        Array with values for the y axis.
+    Z : np.ndarray
+        2D-Array with intensities.
+
+    Returns
+    -------
+    np.ndarray
+        Z oriented as (len(y), len(x)).
+
+    """
+    nx, ny = len(x), len(y)
+    if Z.shape == (ny, nx):
+        return Z
+    if Z.shape == (nx, ny):
+        return Z.T
+    raise ValueError(
+        "Z shape {} is incompatible with x (len={}) and y (len={}); "
+        "expected ({}, {}) or ({}, {})".format(Z.shape, nx, ny, ny, nx, nx, ny)
+    )
+
+
+def _get_shift_matrix(shape: tuple[int, int]) -> np.ndarray:
+    """Create a matrix to shift the single lines vertically.
+
+    Needed for shifted_2D().
 
     Parameters
     ----------
@@ -414,9 +428,9 @@ def _get_shift_matrix(shape: tuple[int, int]) -> np.array:
 
     Returns
     -------
-    shift_matrix : np.array
+    shift_matrix : np.ndarray
         Matrix to shift your data vertically by adding the shift matrix.
-        E. g. : structure of the shift matrix for shape (3, 2):
+        E.g.: structure of the shift matrix for shape (3, 2):
         ::
 
             [[0, 0],
@@ -432,27 +446,25 @@ def _get_shift_matrix(shape: tuple[int, int]) -> np.array:
 
 
 def _set_axis(
-    ax: object, figure_par: dict, *axes: np.array, y_axis: bool = True
-) -> object:
-    """
-    Set up all axis for a plot created by matplotlib.
+    ax: plt.Axes, figure_par: dict, *axes: np.ndarray, y_axis: bool = True
+) -> plt.Axes:
+    """Set up all axis for a plot created by matplotlib.
 
     Parameters
     ----------
-    ax : object
+    ax : plt.Axes
         Axis object of matplotlib.pylab.
     figure_par : dict
         Dictionary containing all settings for the figure.
-    *axes : np.array
-        All axes used for the plot. Used to determine the dimension an set up
+    *axes : np.ndarray
+        All axes used for the plot. Used to determine the dimension and set up
         the z axis if needed.
-    y_axis : bool, optional
-        If a y axis is needed. If False, all y ticks will be removed. The
-        default is True.
+    y_axis : bool, default is True
+        If a y axis is needed. If False, all y ticks will be removed.
 
     Returns
     -------
-    ax : object
+    ax : plt.Axes
         Modified axis object of matplotlib.pylab.
 
     """
@@ -477,24 +489,25 @@ def _set_axis(
     return ax
 
 
-def _set_figure(ax: object, figure_par: dict, mplstylesheet: str = None) -> object:
-    """
-    Set up the figure of a plot created by matplotlib.
+def _set_figure(
+    ax: plt.Axes, figure_par: dict, mpl_stylesheet: str | None = None
+) -> plt.Axes:
+    """Set up the figure of a plot created by matplotlib.
 
     Parameters
     ----------
-    ax : object
+    ax : plt.Axes
         Axis object of matplotlib.pylab.
     figure_par : dict
         Dictionary containing all settings for the figure.
-    mplstylesheet : str, optional
+    mpl_stylesheet : str, default is None
         Name of the stylesheet which should be used instead of a plotting
         profile. If no filename is given, the settings from the given plotting
-        profile will be used. The default is None.
+        profile will be used.
 
     Returns
     -------
-    ax : object
+    ax : plt.Axes
         Modified axis object of matplotlib.pylab.
 
     """
@@ -506,47 +519,37 @@ def _set_figure(ax: object, figure_par: dict, mplstylesheet: str = None) -> obje
     return ax
 
 
-def _get_style_path(mplstylesheet: str = None) -> str:
-    """
-    Get the path to the choosen mpl stylesheet.
+def _get_style_path(mpl_stylesheet: str | None = None) -> str:
+    """Get the path to the chosen mpl stylesheet.
 
     Parameters
     ----------
-    mplstylesheet : str, optional
-        Name of the mpl stylesheet. The default is None.
+    mpl_stylesheet : str, default is None
+        Name of the mpl stylesheet.
 
     Returns
     -------
     str
-        Path to the choosen stylesheet.
+        Path to the chosen stylesheet.
 
     """
-    if mplstylesheet is None:
-        style = os.path.join(
-            sys.prefix,
-            "easypairspin",
-            "profiles",
-            "plot",
-            "default_stylesheet",
-        )
-    elif mplstylesheet in plt.style.available:
-        style = mplstylesheet
+    if mpl_stylesheet is None:
+        style = str(profiles.PROFILE_ROOT / "plot" / "default_stylesheet")
+    elif mpl_stylesheet in plt.style.available:
+        style = mpl_stylesheet
     else:
-        style = os.path.join(
-            sys.prefix, "easypairspin", "profiles", "plot", mplstylesheet
-        )
+        style = str(profiles.PROFILE_ROOT / "plot" / mpl_stylesheet)
 
     return style
 
 
-def _load_default_styles() -> list:
-    """
-    Load the pathes for the default matplotlib styles.
+def _load_default_styles() -> list[str]:
+    """Load the paths for the default matplotlib styles.
 
     Returns
     -------
-    default_styles : list
-        Pathes for the default style sheetss.
+    default_styles : list[str]
+        Paths for the default style sheets.
 
     """
     default_styles = []
@@ -558,8 +561,7 @@ def _load_default_styles() -> list:
 
 
 def _get_label_list(length: int, label: str) -> list[str]:
-    """
-    Get a list with length times the label.
+    """Get a list with length times the label.
 
     Parameters
     ----------
@@ -571,7 +573,7 @@ def _get_label_list(length: int, label: str) -> list[str]:
     Returns
     -------
     list[str]
-        Length times label as a list. E. g.: ['label', 'label', 'label'].
+        Length times label as a list. E.g.: ['label', 'label', 'label'].
 
     """
     labels = [label] * length
@@ -580,28 +582,28 @@ def _get_label_list(length: int, label: str) -> list[str]:
 
 
 def _get_axis_limit(
-    data_axis: np.array, ax_lim: list, percentage_mode: bool
-) -> [float, float]:
-    """
-    Get the plot limits for a given data axis.
+    data_axis: np.ndarray, ax_lim: list | str, percentage_mode: bool
+) -> tuple[float, float]:
+    """Get the plot limits for a given data axis.
 
     If no limit is specified, the minimal and maximal value of the given
     dataset will be taken.
 
     Parameters
     ----------
-    data_axis : np.array
+    data_axis : np.ndarray
         Data vector for an axis.
-    ax_lim : list
-        Limits for the data vector taken from a profile.
+    ax_lim : list or str
+        Limits for the data vector taken from a profile. Empty string means
+        no limit is specified.
     percentage_mode : bool
         If True, the ax.lim will be handled as a percentage in context to the
         lowest and highest values with respect to the given axis.
-        E. g.: x-vector with values [0, 200], ax_lim: [-2., 2.] -> [4, 204].
+        E.g.: x-vector with values [0, 200], ax_lim: [-2., 2.] -> [4, 204].
 
     Returns
     -------
-    [float, float]
+    tuple[float, float]
         Limits for plotting.
 
     """

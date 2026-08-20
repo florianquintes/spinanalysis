@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-© M. Sc. Florian Quintes, 2021-2022
+"""Transform EPR spectra through normalization, background correction, and reconstruction.
+
+© M. Sc. Florian Quintes, 2026
 
 @contact: florian.quintes@pc.uni.freiburg.de
 
@@ -9,35 +10,35 @@
 """
 
 import numpy as np
-from scipy.optimize import curve_fit
 from scipy import integrate
+from scipy.optimize import curve_fit
 from statsmodels.tsa.ar_model import AutoReg, ar_select_order
 
 
-def normalization(x: np.array, mode: str = None, dx: float = None) -> np.array:
-    r"""
-    Normalize the given data.
+def normalization(
+    x: np.ndarray, mode: str | None = None, dx: float | None = None
+) -> np.ndarray:
+    r"""Normalize the given data.
 
     .. math::
-        x_{\mathrm{norm}} = \frac{x_i - min(x)}{max(x)-min(x)}
+        x_{\mathrm{norm}} = \frac{x_i - \min(x)}{\max(x)-\min(x)}
 
     Parameters
     ----------
-    x : np.array
+    x : np.ndarray
         Unnormalized data.
     mode : str, optional
-        If 'area', the total AUC will be 1, if 'value', the maximum value will
-        be 1 or -1, else, the formula mentioned above will be used. Default is
-        None.
+        If ``'area'``, the total AUC will be 1; if ``'value'``, the
+        maximum absolute value will be 1; otherwise the formula above
+        is used.  The default is ``None``.
     dx : float, optional
-        Distance between two points on the x axis. Only used for simpson
-        integration. Default is None.
+        Distance between two points on the x axis.  Only used for
+        Simpson integration.  The default is ``None``.
 
     Returns
     -------
-    x_norm : np.array
+    np.ndarray
         Normalized data.
-
     """
     if mode is None:
         if x.dtype == "complex":
@@ -70,20 +71,18 @@ def normalization(x: np.array, mode: str = None, dx: float = None) -> np.array:
     return x_norm
 
 
-def reduce_offset(x: np.array) -> np.array:
-    """
-    Eliminate the offset of the data by using the mean of the last quarter.
+def reduce_offset(x: np.ndarray) -> np.ndarray:
+    """Eliminate the offset of the data by subtracting the mean of the last quarter.
 
     Parameters
     ----------
-    x : np.array
-        Given data, e. g. measured intensities.
+    x : np.ndarray
+        Given data, e.g. measured intensities.
 
     Returns
     -------
-    x_shifted : np.array
+    np.ndarray
         Shifted data without offset.
-
     """
     start = 3 * x.shape[0] // 4
     if x.dtype == "complex":
@@ -96,31 +95,30 @@ def reduce_offset(x: np.array) -> np.array:
     return x_shifted
 
 
-def background_corr(x: np.array, y: np.array, mode: str = "biexp") -> np.array:
-    """
-    Perform a background correction of measured data.
+def background_corr(x: np.ndarray, y: np.ndarray, mode: str = "biexp") -> np.ndarray:
+    """Perform a background correction of measured data.
 
-    Available correction modes are: biexp, exp, lin, poly2, poly3 and poly4.
-    biexp and exp are using exponential models for the background. lin, poly2-4
-    are polynominal models of first to fourth order. Default is 'biexp'.
+    Available correction modes are: ``biexp``, ``exp``, ``lin``,
+    ``poly2``, ``poly3`` and ``poly4``.  ``biexp`` and ``exp`` use
+    exponential models for the background; ``lin`` and ``poly2-4`` are
+    polynomial models of first to fourth order.
 
     .. warning::
-        poly3 and poly4 can lead to overfitting!
+        ``poly3`` and ``poly4`` can lead to overfitting!
 
     Parameters
     ----------
-    x : np.array
+    x : np.ndarray
         x axis of the dataset.
-    y : np.array
+    y : np.ndarray
         y data which will be background corrected.
     mode : str, optional
-        Select the type of the background. The default is 'biexp'.
+        Select the type of the background.  The default is ``'biexp'``.
 
     Returns
     -------
-    y_corr : np.array
+    np.ndarray
         Background corrected y data.
-
     """
     if mode == "biexp":
         p0 = [0.9, -0.002, 0.05, -0.0009, 0.0]
@@ -150,161 +148,146 @@ def background_corr(x: np.array, y: np.array, mode: str = "biexp") -> np.array:
     return y_corr
 
 
-def exp_fun(x: np.array, *coeff: float) -> np.array:
-    """
-    Generalized monoexponential function for background correction.
+def exp_fun(x: np.ndarray, *coeff: float) -> np.ndarray:
+    """Generalized monoexponential function for background correction.
 
     Parameters
     ----------
-    x : np.array
+    x : np.ndarray
         x values used to calculate corresponding y values.
     *coeff : float
         Variables for the monoexponential function which will be fitted.
 
     Returns
     -------
-    y : np.array
+    np.ndarray
         Calculated y values.
-
     """
     a, b, c = coeff
     y = a * np.exp(b * x) + c
     return y
 
 
-def biexp_fun(x: np.array, *coeff: float) -> np.array:
-    """
-    Generalized biexponential function for background correction.
+def biexp_fun(x: np.ndarray, *coeff: float) -> np.ndarray:
+    """Generalized biexponential function for background correction.
 
     Parameters
     ----------
-    x : np.array
+    x : np.ndarray
         x values used to calculate corresponding y values.
     *coeff : float
         Variables for the biexponential function which will be fitted.
 
     Returns
     -------
-    y : np.array
+    np.ndarray
         Calculated y values.
-
     """
     a, b, c, d, e = coeff
     y = a * np.exp(b * x) + c * np.exp(d * x) + e
     return y
 
 
-def lin_fun(x: np.array, *coeff: float) -> np.array:
-    """
-    Generalized linear function for background correction.
+def lin_fun(x: np.ndarray, *coeff: float) -> np.ndarray:
+    """Generalized linear function for background correction.
 
     Parameters
     ----------
-    x : np.array
+    x : np.ndarray
         x values used to calculate corresponding y values.
     *coeff : float
         Variables for the linear function which will be fitted.
 
     Returns
     -------
-    y : np.array
+    np.ndarray
         Calculated y values.
-
     """
     a, b = coeff
     y = a * x + b
     return y
 
 
-def poly2_fun(x: np.array, *coeff: float) -> np.array:
-    """
-    Generalized polynominal function of degree 2 for background correction.
+def poly2_fun(x: np.ndarray, *coeff: float) -> np.ndarray:
+    """Generalized polynomial function of degree 2 for background correction.
 
     Parameters
     ----------
-    x : np.array
+    x : np.ndarray
         x values used to calculate corresponding y values.
     *coeff : float
-        Variables for the polynominal function of degree 2 which will be
+        Variables for the polynomial function of degree 2 which will be
         fitted.
 
     Returns
     -------
-    y : np.array
+    np.ndarray
         Calculated y values.
-
     """
     a, b, c = coeff
     y = a * x**2 + b * x + c
     return y
 
 
-def poly3_fun(x: np.array, *coeff: float) -> np.array:
-    """
-    Generalized polynominal function of degree 3 for background correction.
+def poly3_fun(x: np.ndarray, *coeff: float) -> np.ndarray:
+    """Generalized polynomial function of degree 3 for background correction.
 
     Parameters
     ----------
-    x : np.array
+    x : np.ndarray
         x values used to calculate corresponding y values.
     *coeff : float
-        Variables for the polynominal function of degree 3 which will be
+        Variables for the polynomial function of degree 3 which will be
         fitted.
 
     Returns
     -------
-    y : np.array
+    np.ndarray
         Calculated y values.
-
     """
     a, b, c, d = coeff
     y = a * x**3 + b * x**2 + c * x + d
     return y
 
 
-def poly4_fun(x: np.array, *coeff: float) -> np.array:
-    """
-    Generalized polynominal function of degree 4 for background correction.
+def poly4_fun(x: np.ndarray, *coeff: float) -> np.ndarray:
+    """Generalized polynomial function of degree 4 for background correction.
 
     Parameters
     ----------
-    x : np.array
+    x : np.ndarray
         x values used to calculate corresponding y values.
     *coeff : float
-        Variables for the polynominal function of degree 4 which will be
+        Variables for the polynomial function of degree 4 which will be
         fitted.
 
     Returns
     -------
-    y : np.array
+    np.ndarray
         Calculated y values.
-
     """
     a, b, c, d, e = coeff
     y = a * x**4 + b * x**3 + c * x**2 + d * x + e
     return y
 
 
-def reconstruct(x: np.array, y: np.array) -> np.array:
-    """
-    Reconstruction of a time signal use the Yule-Walker algorithm.
+def reconstruct(x: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Reconstruct a time signal using the Yule-Walker algorithm.
 
     Parameters
     ----------
-    x : np.array
+    x : np.ndarray
         x axis.
-    y : np.array
+    y : np.ndarray
         Intensities.
 
     Returns
     -------
-    x_new : np.array
+    x_new : np.ndarray
         Reconstructed x axis.
-    y : np.array
+    y_new : np.ndarray
         Reconstructed intensities.
-
     """
-    # prepare the new array
     x_step = x[1] - x[0]
     if x[0] % x_step != 0:
         x_fill_points = int(x[0] / x_step) + 1
@@ -314,11 +297,9 @@ def reconstruct(x: np.array, y: np.array) -> np.array:
         (np.linspace(x[0] - x_step * x_fill_points, x[0] - x_step, x_fill_points), x)
     )
 
-    # determine the order of the p value for the reconstruction
     order = ar_select_order(y[::-1], maxlag=40)
     nlag = len(order.ar_lags)
 
-    # Fit the model to the data and make a predicition
     AutoRegFit = AutoReg(y[::-1], lags=order.ar_lags).fit()
     y_pred = AutoRegFit.predict(start=0, end=x_new.shape[0] + nlag - 1)
 

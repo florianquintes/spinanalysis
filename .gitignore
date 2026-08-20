@@ -1,1 +1,17 @@
+# Python-generated files
 AGENTS.md
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Documentation build output
+docs/build/
+
+# Virtual environments
+.venv
+
+# Extracted test data (kept as ZIP archive)
+tests/data/test_loading/

@@ -38,6 +38,8 @@ extensions = [
 ]
 
 autodoc_mock_imports = [
+    "mkl",
+    "scipy2eps",
     "teacups",
     "oop_eseem",
     "genetic_radpair",
