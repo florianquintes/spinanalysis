@@ -9,16 +9,18 @@
 @author: Florian Quintes
 """
 
-from time import time
+from collections.abc import Callable
 from copy import deepcopy
-from multiprocessing import cpu_count, Pool
 from itertools import repeat
+from multiprocessing import Pool, cpu_count
+from time import time
+from typing import Any
+
 import numpy as np
 
 
-def timer(func: callable) -> callable:
-    """
-    Decorator function to measure time for one function call.
+def timer(func: Callable) -> Callable:
+    """Measure the wall-clock runtime of a single function call.
 
     Parameters
     ----------
@@ -27,12 +29,11 @@ def timer(func: callable) -> callable:
 
     Returns
     -------
-    res : any
-        Result(s) of the function.
-
+    callable
+        Wrapper that prints the runtime and returns the original result.
     """
 
-    def time_wrap(*args, **kwargs):
+    def time_wrap(*args: Any, **kwargs: Any) -> Any:
         start = time()
         res = func(*args, **kwargs)
         runtime = time() - start
@@ -42,26 +43,23 @@ def timer(func: callable) -> callable:
     return time_wrap
 
 
-def function_benchmark(func: callable, niter: int = 100) -> callable:
-    """
-    This decorateur will run the given function niter times and print the best,
-    the worst and the average runtime.
+def function_benchmark(func: Callable, niter: int = 100) -> Callable:
+    """Run *func* *niter* times and print best, worst, and average runtime.
 
     Parameters
     ----------
     func : callable
         Function which will be benchmarked.
-    niter : int
-        Number of function calls.
+    niter : int, optional
+        Number of function calls. The default is 100.
 
     Returns
     -------
     callable
-        Function with automatic benchmark.
-
+        Wrapper that runs the benchmark and prints timing statistics.
     """
 
-    def benchmarked_function(*args, **kwargs):
+    def benchmarked_function(*args: Any, **kwargs: Any) -> None:
         times = np.empty(niter)
         for i in range(times.shape[0]):
             start = time()
@@ -86,39 +84,26 @@ def function_benchmark(func: callable, niter: int = 100) -> callable:
     return benchmarked_function
 
 
-def multicore(simulation: callable) -> callable:
-    """
-    Using multiprocessing.Pool() with starmap() for parallel computing of
-    various simulation routines using the spinanalysis function interface
-    simulation(Sys, Exp, SimOpt).
+def multicore(simulation: Callable) -> Callable:
+    """Parallelise a simulation routine using :class:`multiprocessing.Pool`.
+
+    The decorated function must accept ``(Sys, Exp, SimOpt)`` and is
+    executed on ``SimOpt.cpu_cores`` processes, each handling a slice of
+    the magnetic-field axis.
 
     Parameters
     ----------
     simulation : callable
-        Simulation function which uses the spinanalysis interface (Sys, Exp,
-        SimOpt).
+        Simulation function with the signature ``(Sys, Exp, SimOpt)``.
 
     Returns
     -------
-    multicore_wrapper : callable
-        The origin simulation callable as multicore version.
-
+    callable
+        Wrapper with signature ``(Sys, Exp, SimOpt)`` that distributes
+        the work across CPU cores and returns the concatenated spectrum.
     """
 
-    def simulation_with_queue(
-        simulation: callable,
-        Sys: object,
-        Exp: object,
-        SimOpt: object,
-        queue: object,
-        num: int,
-    ) -> None:
-        intensity = simulation(Sys, Exp, SimOpt)
-        queue.put((num, intensity))
-
-        return None
-
-    def multicore_wrapper(Sys: object, Exp: object, SimOpt: object) -> np.array:
+    def multicore_wrapper(Sys: Any, Exp: Any, SimOpt: Any) -> np.ndarray:
         if SimOpt.cpu_cores == 0:
             SimOpt.cpu_cores = cpu_count()
 
@@ -141,34 +126,12 @@ def multicore(simulation: callable) -> callable:
                 Experimental.B_z = whole_B_z[start:]
             Exp_list[core] = Experimental
 
-        # [Multi-Core Calculation]
         pool = Pool(processes=SimOpt.cpu_cores)
         single_intensities = pool.starmap(
             simulation, zip(repeat(Sys), Exp_list, repeat(SimOpt))
         )
         pool.close()
         pool.join()
-
-        # queue = Queue()
-
-        # processes = []
-        # for i, Exp_i in enumerate(Exp_list):
-        #     processes.append(Process(target=simulation_with_queue,
-        #                              args=(simulation, Sys, Exp_i, SimOpt,
-        #                                    queue, i)
-        #                              )
-        #                      )
-
-        # for p in processes:
-        #     p.start()
-
-        # for p in processes:
-        #     p.join()
-
-        # intensities = [queue.get() for p in processes]
-        # intensities.sort()
-
-        # single_intensities = [intensity[1] for intensity in intensities]
 
         intens_arr_tuple = tuple(single_intensities)
         intensity = np.hstack(intens_arr_tuple)

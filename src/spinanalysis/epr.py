@@ -122,104 +122,102 @@ class _MutableModel(BaseModel):
 
 
 class EPR_Parameters(_MutableModel):
-    """
-
-    A class containing all parameters for various radical pair simulations.
+    """A class containing all parameters for various radical pair simulations.
 
     Attributes
     ----------
-    g1 : 1d-Array, np.float64
+    g1 : np.ndarray
         g-Tensor of electron 1.
-    g2 : 1d-Array, np.float64
+    g2 : np.ndarray
         g-Tensor of electron 2.
-    g_tri : 1d-Array, np.float64
+    g_tri : np.ndarray
         g-Tensor of a triplet radical.
-    g : 1d-Array, np.float64
+    g : np.ndarray
         g-Tensor of a radical.
-    A1 : 1d-Array, np.float64
+    A1 : np.ndarray
         A-Tensor of nuclei 1 in Megahertz.
-    A2 : 1d-Array, np.float64
+    A2 : np.ndarray
         A-Tensor of nuclei 2 in Megahertz.
-    A3 : 1d-Array, np.float64
+    A3 : np.ndarray
         A-Tensor of nuclei 3 in Megahertz.
-    A4 : 1d-Array, np.float64
+    A4 : np.ndarray
         A-Tensor of nuclei 4 in Megahertz.
-    A5 : 1d-Array, np.float64
+    A5 : np.ndarray
         A-Tensor of nuclei 5 in Megahertz.
-    A_eseem : float64
+    A_eseem : float
         Hyperfine coupling for the nuclei in OOP-ESEEM in Megahertz.
-    omega_I : float64
+    omega_I : float
         Nuclei frequency in OOP-ESEEM in Megahertz.
-    D : float64
+    D : float
         Zero field splitting parameter D in Megahertz.
-    D_tri : float64
+    D_tri : float
         Zero field splitting parameter D of a triplet in Megahertz.
-    E : float64
+    E : float
         Zero field splitting parameter E in Megahertz.
-    E_tri : float64
+    E_tri : float
         Zero field splitting parameter E of a triplet in Megahertz.
-    beta : float64
+    beta : float
         Decay rate of the exchange coupling in Å^-1.
-    J_0 : float64
+    J_0 : float
         Zero distance exchange coupling constant in Megahertz.
-    J_ex : float64
+    J_ex : float
         Exchange coupling in Megahertz.
-    g1_frame : 1d-Array, np.float64
+    g1_frame : np.ndarray
         Orientation of electron spin 1 in radian.
-    g2_frame : 1d-Array, np.float64
+    g2_frame : np.ndarray
         Orientation of electron spin 2 in radian.
-    g_tri_frame : 1d-Array, np.float64
+    g_tri_frame : np.ndarray
         Orientation of g_tri in radian.
-    g_frame : 1d-Array, np.float64
+    g_frame : np.ndarray
         Orientation of g in radian.
-    A1_frame : 1d-Array, np.float64
+    A1_frame : np.ndarray
         Orientation of nuclei spin 1 in radian.
-    A2_frame : 1d-Array, np.float64
+    A2_frame : np.ndarray
         Orientation of nuclei spin 2 in radian.
-    A3_frame : 1d-Array, np.float64
+    A3_frame : np.ndarray
         Orientation of nuclei spin 3 in radian.
-    A4_frame : 1d-Array, np.float64
+    A4_frame : np.ndarray
         Orientation of nuclei spin 4 in radian.
-    A5_frame : 1d-Array, np.float64
+    A5_frame : np.ndarray
         Orientation of nuclei spin 5 in radian.
-    D_frame : 1d-Array, np.float64
+    D_frame : np.ndarray
         Orientation of dipol coupling in radian.
-    D_tri_frame : 1d-Array, np.float64
+    D_tri_frame : np.ndarray
         Orientation of triplet dipol coupling in radian.
     n1 : int
         Number of chemically equivalent atoms.
-    I1 : float64
+    I1 : float
         Corresponding nuclear spin.
     n2 : int
         Number of chemically equivalent atoms.
-    I2 : float64
+    I2 : float
         Corresponding nuclear spin.
     n3 : int
         Number of chemically equivalent atoms.
-    I3 : float64
+    I3 : float
         Corresponding nuclear spin.
     n4 : int
         Number of chemically equivalent atoms.
-    I4 : float64
+    I4 : float
         Corresponding nuclear spin.
     n5 : int
         Number of chemically equivalent atoms.
-    I5 : float64
+    I5 : float
         Corresponding nuclear spin.
-    width_gauss : float64
+    width_gauss : float
         Gaussian linewidth in mT.
-    T_relax_1 : float64
+    T_relax_1 : float
         Longitudinal relaxation time in s.
-    T_relax_2 : float64
+    T_relax_2 : float
         Transversal relaxation time in s.
-    decay : float64
+    decay : float
         Exponential decay time for hilbert space simulations in s.
-    T_pm : float64
+    T_pm : float
         Phase memory time (OOP ESEEM).
-    population : 1d-Array, np.float64
+    population : np.ndarray
         Populations of the initial density matrix of a triplet precursor in
         zero field.
-    amplitude : float64
+    amplitude : float
         Amplitude of the spectra for OOP-ESEEM.
 
     """
@@ -262,14 +260,7 @@ class EPR_Parameters(_MutableModel):
     amplitude: float = 0.0
 
     def __init__(self, **data: Any) -> None:
-        """
-        Initialize object of class 'Spinsystem' for radical pair simulation.
-
-        Returns
-        -------
-        None.
-
-        """
+        """Initialize an EPR_Parameters object for radical pair simulation."""
         if data:
             super().__init__(**data)
             return
@@ -326,112 +317,107 @@ class EPR_Parameters(_MutableModel):
 
 
 class Spinsystem(EPR_Parameters):
-    """
-    A class containing all parameters for various radical pair simulations.
+    """A class containing all parameters for various radical pair simulations.
 
     Attributes
     ----------
-    g1_iso : float64
+    g1_iso : float
         Isotropic g value of electron 1.
-    g2_iso : float64
+    g2_iso : float
         Isotropic g value of electron 2.
     n1 : int
         Number of chemically equivalent atoms.
-    I1 : float64
+    I1 : float
         Corresponding nuclear spin.
     n2 : int
         Number of chemically equivalent atoms.
-    I2 : float64
+    I2 : float
         Corresponding nuclear spin.
     n3 : int
         Number of chemically equivalent atoms.
-    I3 : float64
+    I3 : float
         Corresponding nuclear spin.
     n4 : int
         Number of chemically equivalent atoms.
-    I4 : float64
+    I4 : float
         Corresponding nuclear spin.
     n5 : int
         Number of chemically equivalent atoms.
-    I5 : float64
+    I5 : float
         Corresponding nuclear spin.
-    donor_list : np.array
+    donor_list : np.ndarray
         Defines which atom groups are donor groups.
-    acceptor_list : np.array
+    acceptor_list : np.ndarray
         Defines which atom groups are acceptor groups.
     frame_group_i : list
         Define a frame_group which will be used in optimization mode. Each
         frame group contains the names of the angle lists which always will
-        have same values during optimization. i is a variable and can be
+        have same values during optimization. ``i`` is a variable and can be
         whatever you want. You can define as many frame groups as you want. An
-        example frame group would be: frame_group_1 = ['A1', 'A2', 'D']. This
-        list means, that A2_frame and D_frame will always have the same values
-        as A1_frame, no matter which values were given to them.
+        example frame group would be: ``frame_group_1 = ['A1', 'A2', 'D']``.
+        This list means that A2_frame and D_frame will always have the same
+        values as A1_frame, no matter which values were given to them.
     spin_system : str
         Define the spin system by one out of: "rp" (radical pair), "doub"
         (doublet), "trip" (triplet), "tdp" (triplet-doublet pair).
     precursor : str
         State of the precursor. One out of: "zf", "eigen", "singlet",
         "triplet-zf", "triplet-eigen", "coupled", "basis".
-    dynamics : np.array
+    dynamics : np.ndarray
         Matrix with rate constants of relaxation process in 1/s. For further
         information see the documentation.
     distribution_order : int
         Number of Gaussians used for Multi-Gauss-Fitting.
-    distribution : np.array
+    distribution : np.ndarray
         Distance distribution of the radical pair.
 
     Methods
     -------
-    load(profile_name: str)
+    load(profile_name)
         Load Spinsystem values from a config file (profile_name.ini).
-
-        Recommended
-    save(profile_name: str)
+    save(profile_name)
         Save the current spinsystem values as a config file (profile_name.ini).
-
-        Recommended
     _get_g_iso()
         Determine both g_iso values. Needed in simulation.
 
     Examples
     --------
-    Initialize a new object of class <Spinsystem>:
+    Initialize a new object of class ``Spinsystem``::
 
-    >>> Sys = Spinsystem()
-    >>> Sys.g1
-    np.array([2.002, 2.002, 2.002])
-    >>> Sys.g1_iso
-    2.002
+        >>> Sys = Spinsystem()
+        >>> Sys.g1
+        np.array([2.002, 2.002, 2.002])
+        >>> Sys.g1_iso
+        2.002
 
-    Change values:
+    Change values::
 
-    >>> Sys.g1 = np.array([2.0024, 2.00381, 2.0027])
-    >>> Sys.get_g_iso()
-    >>> Sys.g1
-    np.array([2.0024 , 2.00381, 2.0027 ])
-    >>> Sys.g1_iso
-    2.00297
+        >>> Sys.g1 = np.array([2.0024, 2.00381, 2.0027])
+        >>> Sys.get_g_iso()
+        >>> Sys.g1
+        np.array([2.0024 , 2.00381, 2.0027 ])
+        >>> Sys.g1_iso
+        2.00297
 
-    Create a new spinsystem profile from an empty template and load it:
+    Create a new spinsystem profile from an empty template and load it::
 
-    >>> Sys_profile = profiles.new_spinsystem_profile()
-    >>> Sys_profile['g_1'] = [2.0034, 2.00156, 2.00228] #  use list not array!
-    >>> profiles.add_profile(Sys.profile, 'spinsystem', 'Sys_prof_1')
-    >>> Sys_2 = Spinsystem()
-    >>> Sys_2.load_profile('Sys_prof_1')
-    >>> Sys_2.g1
-    np.array([2.0034 , 2.00156, 2.00228])
+        >>> Sys_profile = profiles.new_spinsystem_profile()
+        >>> Sys_profile['g_1'] = [2.0034, 2.00156, 2.00228]
+        >>> profiles.add_profile(Sys.profile, 'spinsystem', 'Sys_prof_1')
+        >>> Sys_2 = Spinsystem()
+        >>> Sys_2.load_profile('Sys_prof_1')
+        >>> Sys_2.g1
+        np.array([2.0034 , 2.00156, 2.00228])
 
-    You can also save your current spinsystem as a new profile:
+    You can also save your current spinsystem as a new profile::
 
-    >>> Sys_3 = Spinsystem()
-    >>> Sys_3.g1 = np.array([1, 2, 3]) #  either array or list
-    >>> Sys_3.save('Sys_prof_2')
-    >>> Sys_4 = Spinsystem()
-    >>> Sys_4.load('Sys_prof_2')
-    >>> Sys_4.g1
-    np.array([1., 2., 3.])
+        >>> Sys_3 = Spinsystem()
+        >>> Sys_3.g1 = np.array([1, 2, 3])
+        >>> Sys_3.save('Sys_prof_2')
+        >>> Sys_4 = Spinsystem()
+        >>> Sys_4.load('Sys_prof_2')
+        >>> Sys_4.g1
+        np.array([1., 2., 3.])
 
     """
 
@@ -560,14 +546,7 @@ class Spinsystem(EPR_Parameters):
     )
 
     def __init__(self, degree: bool = False, **data: Any) -> None:
-        """
-        Initialize object of class 'Spinsystem' for radical pair simulation.
-
-        Returns
-        -------
-        None.
-
-        """
+        """Initialize a Spinsystem object for radical pair simulation."""
         if data:
             super().__init__(**data)
             self._get_g_iso()
@@ -624,8 +603,7 @@ class Spinsystem(EPR_Parameters):
             self._get_g_iso()
 
     def load(self, profile_name: str, degree: bool = False) -> None:
-        """
-        Load a spinsystem from a profile.
+        """Load a spinsystem from a profile.
 
         Load the settings from ~/.config/spinanalysis/profiles/spinsystem/
         [profile_name].ini into the Spinsystem object. Overwrites previous
@@ -638,12 +616,8 @@ class Spinsystem(EPR_Parameters):
         degree : bool, optional
             If True, the angle values in the profile are given in degree not
             radian. Thus, they will be converted to radian. If False, the
-            angles are given in radian and will therefore not be converted. The
-            default is 'False'.
-
-        Returns
-        -------
-        None.
+            angles are given in radian and will therefore not be converted,
+            default is ``False``.
 
         """
         spinsystem_profile = profiles.load_profile(profile_name, "spinsystem")
@@ -674,8 +648,7 @@ class Spinsystem(EPR_Parameters):
         self._get_g_iso()
 
     def save(self, profile_name: str = "", degree: bool = False) -> None:
-        """
-        Save the spinsystem as a profile.
+        """Save the spinsystem as a profile.
 
         Save the spinsystem object as a spinsystem profile using
         profile_management.add_profile(). Load the spinsystem using
@@ -685,12 +658,7 @@ class Spinsystem(EPR_Parameters):
         ----------
         profile_name : str, optional
             Name of the profile.  If no profile name is given, a default one
-            will be generated by get_profile_name(). The default is ''.
-
-        Returns
-        -------
-        None
-            Nothing will be returned.
+            will be generated by get_profile_name(), default is ``''``.
 
         """
         spinsys_profile = profiles.new_spinsystem_profile()
@@ -707,24 +675,22 @@ class Spinsystem(EPR_Parameters):
 
 
 class Experimental(_MutableModel):
-    """
-
-    A class containing all experimental parameters and data.
+    """A class containing all experimental parameters and data.
 
     Attributes
     ----------
-    B_z : 1d-Array, np.float64
+    B_z : np.ndarray
         External magnetic field points in mT used for simulation. Conversions
         allowed.
-    freq_mw : float64
+    freq_mw : float
         Frequency of induced microwave radiation in Gigahertz.
-    magnetic_field : 1d-Array, np.float64
+    magnetic_field : np.ndarray
         Same as B_z, but will never be changed.
-    int : np.array, np.complex128
+    int : np.ndarray
         Real and imaginary part of the measured intensities. 1d or 2d.
-    time_axis : 1d-Array, optional
+    time_axis : np.ndarray, optional
         Contains all experimental time points.
-    spec_sim : 1d-Array, np.float64
+    spec_sim : np.ndarray
         Calculated spectrum. At initialisation empty.
 
     Methods
@@ -751,11 +717,11 @@ class Experimental(_MutableModel):
 
     def __init__(
         self,
-        magnetic_field: np.array = None,
-        real_int: np.array = None,
-        imag_int: np.array = None,
-        cmplx_int: np.array = None,
-        time_axis: np.array = None,
+        magnetic_field: np.ndarray | None = None,
+        real_int: np.ndarray | None = None,
+        imag_int: np.ndarray | None = None,
+        cmplx_int: np.ndarray | None = None,
+        time_axis: np.ndarray | None = None,
         rescale: bool = True,
         **data: Any,
     ):
@@ -764,24 +730,20 @@ class Experimental(_MutableModel):
 
         Parameters
         ----------
-        magnetic_field : 1d-Array, np.float64, optional
+        magnetic_field : np.ndarray, optional
             Contains all experimental external magnetic field points.
-        real_int : np.array, np.float64, optional
+        real_int : np.ndarray, optional
             Real part of the measured intensities. 1d or 2d.
-        imag_int : np.array, np.float64, optional
+        imag_int : np.ndarray, optional
             Imaginary part of the measured intensities. 1d or 2d.
-        cmplx_int : np.array, np.complex128, optional
+        cmplx_int : np.ndarray, optional
             Real and imaginary part of the measured intensities. 1d or 2d. If
             this parameter is given, real_int and imag_int will be ignored.
-        time_axis : 1d-Array, optional
+        time_axis : np.ndarray, optional
             Contains all experimental time points in s.
-        rescale : bool, optional
+        rescale : bool, optional, default is ``True``
             If True, the experimental intensities will be scaled to a maximum
-            of 1. Default is 'True'.
-
-        Returns
-        -------
-        None.
+            of 1.
 
         """
         super().__init__()
@@ -850,10 +812,10 @@ class Experimental(_MutableModel):
             self.spec_sim = np.zeros(self.B_z.shape, dtype="complex128")
 
     def get_linear_time_axis(
-        self, t_min: float = None, t_max: float = None, t_points: int = None
+        self, t_min: float | None = None, t_max: float | None = None, t_points: "int | None" = None
     ) -> None:
         """
-        Get a linear timea axis for transient simulations.
+        Get a linear time axis for transient simulations.
 
         Get a linear time axis using the given boundaries from self.t_scale
         with self.t_points points.
@@ -863,20 +825,15 @@ class Experimental(_MutableModel):
         t_min : float, optional
             Left boundary of the time axis. If None is given, the current value
             of self.t_scale[0] will be used. Else, the value of self.t_scale[0]
-            will be replaced. The default is None.
+            will be replaced.
         t_max : float, optional
             Right boundary of the time axis. If None is given, the current
             value of self.t_scale[1] will be used. Else, the value of
-            self.t_scale[1] will be replaced. The default is None.
+            self.t_scale[1] will be replaced.
         t_points : int, optional
             Number of time points. If None is given, the current value of
             self.t_points will be used. Else, the value of self.t_points will
-            be replaced. The default is None.
-
-        Returns
-        -------
-        None
-            Nothing will be returned.
+            be replaced.
 
         """
         if self.time_axis is None and (t_min is None or t_max is None):
@@ -909,26 +866,22 @@ class Variation(EPR_Parameters):
         Number of needed digits for chromosomes.
     number_of_genes : int
         Number of varied parameters. Used for fp representation.
-    variation_array : 1d-Array, np.float64
+    variation_array : np.ndarray
         Array with all variation ranges greater 0.
     boundaries : list
         Sequence of tuples containing upper and lower bounds for all varied
         parameters. Used for scipy.optimize.
-    freq_mw : float64
+    freq_mw : float
         Frequency of induced microwave radiation in Hertz.
-    bohr_magneton : float64
+    bohr_magneton : float
         Bohr magneton in Hertz/Tesla.
 
     Methods
     -------
     load(profile_name: str)
         Load Spinsystem values from a config file (profile_name.ini).
-
-        Recommended
     save(profile_name: str)
         Save the current variation values as a config file (profile_name.ini).
-
-        Recommended
     get_digits_for_one_par(Par, digits_per_True, one_par=True)
         Get the number of needed digits for one varied parameter.
     get_needed_digits()
@@ -1033,13 +986,9 @@ class Variation(EPR_Parameters):
         "amplitude",
     )
 
-    def __init__(self, **data: Any):
+    def __init__(self, **data: Any) -> None:
         """
         Initialize object of class 'Variation' for radical pairs in EPR.
-
-        Returns
-        -------
-        None.
 
         """
         if data:
@@ -1159,10 +1108,6 @@ class Variation(EPR_Parameters):
             angles are given in radian and will therefore not be converted. The
             default is 'False'.
 
-        Returns
-        -------
-        None.
-
         """
         variation_profile = profiles.load_profile(profile_name, "variation")
 
@@ -1189,12 +1134,7 @@ class Variation(EPR_Parameters):
         ----------
         profile_name : str, optional
             Name of the profile.  If no profile name is given, a default one
-            will be generated by get_profile_name(). The default is ''.
-
-        Returns
-        -------
-        None
-            Nothing will be returned.
+            will be generated by get_profile_name().
 
         """
         var_profile = profiles.new_variation_profile()
@@ -1211,15 +1151,10 @@ class Variation(EPR_Parameters):
         """
         Get sum of needed digits for all varied parameters.
 
-        Returns
-        -------
-        None.
-
         """
         self.get_number_of_genes()
         self.needed_digits = self.number_of_genes * 12
 
-        return None
 
     def get_number_of_genes(self) -> None:
         """Determine number of parameters which get varied."""
@@ -1231,10 +1166,9 @@ class Variation(EPR_Parameters):
             else:
                 self.number_of_genes += int(np.count_nonzero(np.asarray(value) > 0.0))
 
-        return None
 
     def get_variation_array(self) -> None:
-        """Put all variation ranges in one 1d-Array."""
+        """Put all variation ranges in one 1-D array."""
         self.get_number_of_genes()
         self.variation_array = np.zeros(self.number_of_genes)
         i = 0
@@ -1249,13 +1183,11 @@ class Variation(EPR_Parameters):
                         self.variation_array[i] = parameter
                         i += 1
 
-        return None
 
     def update_digits(self) -> None:
         """Update number of needed_digits."""
         self.get_needed_digits()
 
-        return None
 
     def get_boundaries(self, Sys: object) -> None:
         """
@@ -1267,11 +1199,6 @@ class Variation(EPR_Parameters):
         ----------
         Sys : object
             Spinsystem object.
-
-        Returns
-        -------
-        None
-            Nothing will be returned.
 
         """
         self.boundaries = []
@@ -1314,9 +1241,8 @@ class Variation(EPR_Parameters):
                 self.boundaries.append(b_sigma)
                 self.boundaries.append(b_pos)
 
-        return None
 
-    def _variation_fields(self):
+    def _variation_fields(self) -> Any:
         """Return variation fields in their stable declaration order."""
         excluded = set(self.non_vars)
         return (
@@ -1327,9 +1253,7 @@ class Variation(EPR_Parameters):
 
 
 class SimulationOptions(_MutableModel):
-    """
-
-    A class containing all simulation options.
+    """A class containing all simulation options.
 
     Attributes
     ----------
@@ -1337,18 +1261,18 @@ class SimulationOptions(_MutableModel):
         Name of the simulation routine which will be used by spinanalysis() and
         spinanalysis_optimize().
     knots: int
-        Number of knots used for spherical grid. The default is 20.
+        Number of knots used for spherical grid.
     grid_points: int
         Deprecated alias for ``knots``. It remains supported for compatibility
         but will be removed in a future release.
     space: str
         Name of the mathematical space used for some calculations.
-    pop_evolution : boolean
+    pop_evolution : bool
         If set to True, the population evolution in calculated using teacups.
-    eigval_mode : boolean
+    eigval_mode : bool
         If set to True, only the eigenvalues of the system are calculated using
         teacups.
-    force_cpu : boolean
+    force_cpu : bool
         If True, the simulation will be executed on the CPU, even if GPU is
         available. Default is False.
     regularization_mode : int
@@ -1361,8 +1285,6 @@ class SimulationOptions(_MutableModel):
     -------
     load(profile_name: str)
         Load SimulationOptions values from a config file (profile_name.ini).
-
-        Recommended
     save(profile_name: str)
         Save the current simulation options as a config file
         (profile_name.ini).
@@ -1372,35 +1294,35 @@ class SimulationOptions(_MutableModel):
     Initialize an object of class <SimulationOptions>:
 
     >>> SimOpt = SimulationOptions()
-    >>> SimOpt.grid_points
-    500
+    >>> SimOpt.knots
+    20
 
     Change values:
 
-    >>> SimOpt.grid_points = 1000
-    >>> SimOpt.grid_points
+    >>> SimOpt.knots = 1000
+    >>> SimOpt.knots
     1000
 
     Save your current values as a new profile:
 
     >>> SimOpt.save('SimOpt_prof_1')
     >>> SimOpt_2 = SimulationOptions()
-    >>> SimOpt_2.grid_points
-    500
+    >>> SimOpt_2.knots
+    20
     >>> SimOpt.load('SimOpt_prof_1')
-    >>> SimOpt_2.grid_points
+    >>> SimOpt_2.knots
     1000
 
     You can also create a simulation options profile from an empty template:
 
     >>> simopt_prof = profiles.new_simulation_profile()
-    >>> simopt_prof['static_radpair']['grid_points'] = 1100
+    >>> simopt_prof['static_radpair']['knots'] = 1100
     >>> profiles.add_profile(simopt_prof, 'simulation', 'SimOpt_prof_2')
     >>> SimOpt_3 = SimulationOptions()
-    >>> SimOpt_3.grid_points
-    500
+    >>> SimOpt_3.knots
+    20
     >>> SimOpt.load('SimOpt_prof_2')
-    >>> SimOpt_3.grid_points
+    >>> SimOpt_3.knots
     1100
 
 
@@ -1473,13 +1395,9 @@ class SimulationOptions(_MutableModel):
             )
         super().__setattr__(name, value)
 
-    def __init__(self, **data: Any):
+    def __init__(self, **data: Any) -> None:
         """
         Initialize object of class 'Simulation_Options' used for simulations.
-
-        Returns
-        -------
-        None.
 
         """
         if "grid_points" in data:
@@ -1533,10 +1451,6 @@ class SimulationOptions(_MutableModel):
         profile_name : str
             Name of the simulation profile which will be loaded.
 
-        Returns
-        -------
-        None.
-
         """
         simulation_profile = profiles.load_profile(profile_name, "simulation")
 
@@ -1567,12 +1481,7 @@ class SimulationOptions(_MutableModel):
         ----------
         profile_name : str, optional
             Name of the profile.  If no profile name is given, a default one
-            will be generated by get_profile_name(). The default is ''.
-
-        Returns
-        -------
-        None
-            Nothing will be returned.
+            will be generated by get_profile_name().
 
         """
         simopt_profile = profiles.new_simulation_profile()
@@ -1596,9 +1505,7 @@ class SimulationOptions(_MutableModel):
 
 
 class FittingOptions(_MutableModel):
-    """
-
-    A class containing all optimization options.
+    """A class containing all optimization options.
 
     Attributes
     ----------
@@ -1607,13 +1514,13 @@ class FittingOptions(_MutableModel):
         spinanalysis_optimize().
     method : str
         Name of the optimization method used in the scipy.optimize routines.
-    x0 : numpy.array, np.float64
+    x0 : np.ndarray
         Array containing the initial guess for the optimization routine for
         the parameters which will be varied.
     cpu_cores : int
         Number of cores used for the optimization.
     gui : bool
-        Set to True if in GUI mode (PySpin). The default is False.
+        Set to True if in GUI mode (PySpin).
     window : object
         Plot canvas. Only needed in GUI mode.
 
@@ -1621,16 +1528,12 @@ class FittingOptions(_MutableModel):
     -------
     load(profile_name: str)
         Load FittingOptions values from a config file (profile_name.ini).
-
-        Recommended
     save(profile_name: str)
         Save the current fitting options as a config file (profile_name.ini).
 
-        Recommended
-
     Examples
     --------
-     Initialize an object of class <FittingOptions>:
+    Initialize an object of class <FittingOptions>:
 
         >>> FitOpt = FittingOptions()
         >>> FitOpt.GAVaPS
@@ -1772,13 +1675,9 @@ class FittingOptions(_MutableModel):
             raise ValueError("option must be a boolean")
         return bool(value)
 
-    def __init__(self, **data: Any):
+    def __init__(self, **data: Any) -> None:
         """
         Initialize object of class 'FittingOptions' used for optimization.
-
-        Returns
-        -------
-        None.
 
         """
         if data:
@@ -1889,10 +1788,6 @@ class FittingOptions(_MutableModel):
         profile_name : str
             Name of the optimization profile which will be loaded.
 
-        Returns
-        -------
-        None.
-
         """
         fitting_profile = profiles.load_profile(profile_name, "optimization")
 
@@ -1916,12 +1811,7 @@ class FittingOptions(_MutableModel):
         ----------
         profile_name : str, optional
             Name of the profile.  If no profile name is given, a default one
-            will be generated by get_profile_name(). The default is ''.
-
-        Returns
-        -------
-        None
-            Nothing will be returned.
+            will be generated by get_profile_name().
 
         """
         fitopt_profile = profiles.new_optimization_profile()

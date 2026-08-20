@@ -9,6 +9,7 @@
 @author: Florian Quintes
 """
 
+from typing import Any
 import matplotlib.pyplot as plt
 import numpy as np
 import warnings
@@ -62,10 +63,9 @@ def plot_2D(
     mpl_stylesheet: str = "default_stylesheet",
     labels: list[str] | str = "no_label",
     ax: plt.Axes | None = None,
-    **kwargs,
+    **kwargs: Any,
 ) -> plt.Figure:
-    """
-    Plot the given y value(s) against the given x array.
+    """Plot the given y value(s) against the given x array.
 
     Using matplotlib.pylab.plot(). The plot can be configured via plot
     profiles.
@@ -76,23 +76,23 @@ def plot_2D(
         Array with values for the x axis.
     y : np.ndarray
         1D-Array or 2D-Array with values for y axis.
-    mpl_stylesheet : str, optional
+    mpl_stylesheet : str, default is ``'default_stylesheet'``
         Name of the matplotlib style sheet (see: matplotlib documentation).
         If no style sheet is given, the styles defined in the plotting profile
-        will be used. The default is None.
-    labels : list[str] or str, optional
+        will be used.
+    labels : list[str] or str, default is ``'no_label'``
         List of labels for the legend. If only one label is given, all labels
-        will be the same. The default is 'no_label'.
+        will be the same.
     ax : plt.Axes, optional
         Axes object, used for the PySpin GUI.
-    **kwargs : optional
+    **kwargs
         Keyword arguments passed to the matplotlib plot function. Overrides the
         arguments given in the stylesheet.
 
     Returns
     -------
     fig : plt.Figure
-        Figure object of matplotlib.pylab.
+        Figure object of matplotlib.
 
     """
     profile, style_list = _prepare_style(mpl_stylesheet, kwargs)
@@ -128,10 +128,9 @@ def shifted_2D(
     mpl_stylesheet: str = "default_stylesheet",
     labels: list[str] | str = "no_label",
     ax: plt.Axes | None = None,
-    **kwargs,
+    **kwargs: Any,
 ) -> plt.Figure:
-    """
-    Plot multiples lines in 2D, shifted vertically.
+    """Plot multiple lines in 2D, shifted vertically.
 
     The plot can be configured via plot profiles.
 
@@ -141,23 +140,23 @@ def shifted_2D(
         Array with values for the x axis.
     Y : np.ndarray
         2D-Array with values for y axis.
-    mpl_stylesheet : str, optional
+    mpl_stylesheet : str, default is ``'default_stylesheet'``
         Name of the matplotlib style sheet (see: matplotlib documentation).
         If no style sheet is given, the styles defined in the plotting profile
-        will be used. The default is None.
-    labels : list[str] or str, optional
+        will be used.
+    labels : list[str] or str, default is ``'no_label'``
         List of labels for the legend. If only one label is given, all labels
-        will be the same. The default is 'no_label'.
+        will be the same.
     ax : plt.Axes, optional
         Axes object, used for the PySpin GUI.
-    **kwargs : optional
+    **kwargs
         Keyword arguments passed to the matplotlib plot function. Overrides the
         arguments given in the stylesheet.
 
     Returns
     -------
     fig : plt.Figure
-        Figure object of matplotlib.pylab.
+        Figure object of matplotlib.
 
     """
     profile, style_list = _prepare_style(mpl_stylesheet, kwargs)
@@ -198,10 +197,9 @@ def plot_3D(
     mpl_stylesheet: str = "default_stylesheet",
     labels: str = "no_label",
     ax: plt.Axes | None = None,
-    **kwargs,
+    **kwargs: Any,
 ) -> plt.Figure:
-    """
-    Plot 2D Data in 3D using matplotlib.pylab.plot_surface().
+    """Plot 2D data in 3D using matplotlib.pylab.plot_surface().
 
     The plot can be configured via plot profiles.
 
@@ -213,22 +211,22 @@ def plot_3D(
         Array with values for the y axis.
     Z : np.ndarray
         2D-Array with intensities.
-    mpl_stylesheet : str, optional
+    mpl_stylesheet : str, default is ``'default_stylesheet'``
         Name of the matplotlib style sheet (see: matplotlib documentation).
         If no style sheet is given, the styles defined in the plotting profile
-        will be used. The default is None.
-    labels : str, optional
-        At the moment no function. The default is 'no_label'.
+        will be used.
+    labels : str, default is ``'no_label'``
+        At the moment no function.
     ax : plt.Axes, optional
         Axes object, used for the PySpin GUI.
-    **kwargs : optional
+    **kwargs
         Keyword arguments passed to the matplotlib plot function. Overrides the
         arguments given in the stylesheet.
 
     Returns
     -------
     fig : plt.Figure
-        Figure object of matplotlib.pylab.
+        Figure object of matplotlib.
 
     """
     profile, style_list = _prepare_style(mpl_stylesheet, kwargs)
@@ -263,10 +261,9 @@ def plot_3D_multiple_lines(
     Z: np.ndarray,
     mpl_stylesheet: str = "default_stylesheet",
     ax: plt.Axes | None = None,
-    **kwargs,
+    **kwargs: Any,
 ) -> plt.Figure:
-    """
-    Plot 2D Data in 3D using matplotlib.pylab.plot().
+    """Plot 2D data in 3D using matplotlib.pylab.plot().
 
     Each y trace as a single line plot. The plot can be configured via plot
     profiles.
@@ -279,20 +276,20 @@ def plot_3D_multiple_lines(
         Array with values for the y axis.
     Z : np.ndarray
         2D-Array with intensities.
-    mpl_stylesheet : str, optional
+    mpl_stylesheet : str, default is ``'default_stylesheet'``
         Name of the matplotlib style sheet (see: matplotlib documentation).
         If no style sheet is given, the styles defined in the plotting profile
-        will be used. The default is None.
+        will be used.
     ax : plt.Axes, optional
         Axes object, used for the PySpin GUI.
-    **kwargs : optional
+    **kwargs
         Keyword arguments passed to the matplotlib plot function. Overrides the
         arguments given in the stylesheet.
 
     Returns
     -------
     fig : plt.Figure
-        Figure object of matplotlib.pylab.
+        Figure object of matplotlib.
 
     """
     profile, style_list = _prepare_style(mpl_stylesheet, kwargs)
@@ -324,10 +321,9 @@ def heatmap(
     Z: np.ndarray,
     mpl_stylesheet: str = "default_stylesheet",
     ax: plt.Axes | None = None,
-    **kwargs,
+    **kwargs: Any,
 ) -> plt.Figure:
-    """
-    Plot 2D Data as a heatmap using matplotlib.pylab.pcolormesh().
+    """Plot 2D data as a heatmap using matplotlib.pylab.pcolormesh().
 
     The plot can be configured via plot profiles.
 
@@ -339,20 +335,20 @@ def heatmap(
         Array with values for the y axis.
     Z : np.ndarray
         2D-Array with intensities.
-    mpl_stylesheet : str, optional
+    mpl_stylesheet : str, default is ``'default_stylesheet'``
         Name of the matplotlib style sheet (see: matplotlib documentation).
         If no style sheet is given, the styles defined in the plotting profile
-        will be used. The default is None.
+        will be used.
     ax : plt.Axes, optional
         Axes object, used for the PySpin GUI.
-    **kwargs : optional
+    **kwargs
         Keyword arguments passed to the matplotlib plot function. Overrides the
         arguments given in the stylesheet.
 
     Returns
     -------
     fig : plt.Figure
-        Figure object of matplotlib.pylab.
+        Figure object of matplotlib.
 
     """
     profile, style_list = _prepare_style(mpl_stylesheet, kwargs)
@@ -420,8 +416,7 @@ def _align_z(x: np.ndarray, y: np.ndarray, Z: np.ndarray) -> np.ndarray:
 
 
 def _get_shift_matrix(shape: tuple[int, int]) -> np.ndarray:
-    """
-    Create a matrix to shift the single lines vertically.
+    """Create a matrix to shift the single lines vertically.
 
     Needed for shifted_2D().
 
@@ -435,7 +430,7 @@ def _get_shift_matrix(shape: tuple[int, int]) -> np.ndarray:
     -------
     shift_matrix : np.ndarray
         Matrix to shift your data vertically by adding the shift matrix.
-        E. g. : structure of the shift matrix for shape (3, 2):
+        E.g.: structure of the shift matrix for shape (3, 2):
         ::
 
             [[0, 0],
@@ -453,8 +448,7 @@ def _get_shift_matrix(shape: tuple[int, int]) -> np.ndarray:
 def _set_axis(
     ax: plt.Axes, figure_par: dict, *axes: np.ndarray, y_axis: bool = True
 ) -> plt.Axes:
-    """
-    Set up all axis for a plot created by matplotlib.
+    """Set up all axis for a plot created by matplotlib.
 
     Parameters
     ----------
@@ -463,11 +457,10 @@ def _set_axis(
     figure_par : dict
         Dictionary containing all settings for the figure.
     *axes : np.ndarray
-        All axes used for the plot. Used to determine the dimension an set up
+        All axes used for the plot. Used to determine the dimension and set up
         the z axis if needed.
-    y_axis : bool, optional
-        If a y axis is needed. If False, all y ticks will be removed. The
-        default is True.
+    y_axis : bool, default is True
+        If a y axis is needed. If False, all y ticks will be removed.
 
     Returns
     -------
@@ -496,9 +489,8 @@ def _set_axis(
     return ax
 
 
-def _set_figure(ax: plt.Axes, figure_par: dict, mpl_stylesheet: str = None) -> plt.Axes:
-    """
-    Set up the figure of a plot created by matplotlib.
+def _set_figure(ax: plt.Axes, figure_par: dict, mpl_stylesheet: str | None = None) -> plt.Axes:
+    """Set up the figure of a plot created by matplotlib.
 
     Parameters
     ----------
@@ -506,10 +498,10 @@ def _set_figure(ax: plt.Axes, figure_par: dict, mpl_stylesheet: str = None) -> p
         Axis object of matplotlib.pylab.
     figure_par : dict
         Dictionary containing all settings for the figure.
-    mpl_stylesheet : str, optional
+    mpl_stylesheet : str, default is None
         Name of the stylesheet which should be used instead of a plotting
         profile. If no filename is given, the settings from the given plotting
-        profile will be used. The default is None.
+        profile will be used.
 
     Returns
     -------
@@ -525,14 +517,13 @@ def _set_figure(ax: plt.Axes, figure_par: dict, mpl_stylesheet: str = None) -> p
     return ax
 
 
-def _get_style_path(mpl_stylesheet: str = None) -> str:
-    """
-    Get the path to the chosen mpl stylesheet.
+def _get_style_path(mpl_stylesheet: str | None = None) -> str:
+    """Get the path to the chosen mpl stylesheet.
 
     Parameters
     ----------
-    mpl_stylesheet : str, optional
-        Name of the mpl stylesheet. The default is None.
+    mpl_stylesheet : str, default is None
+        Name of the mpl stylesheet.
 
     Returns
     -------
@@ -550,13 +541,12 @@ def _get_style_path(mpl_stylesheet: str = None) -> str:
     return style
 
 
-def _load_default_styles() -> list:
-    """
-    Load the paths for the default matplotlib styles.
+def _load_default_styles() -> list[str]:
+    """Load the paths for the default matplotlib styles.
 
     Returns
     -------
-    default_styles : list
+    default_styles : list[str]
         Paths for the default style sheets.
 
     """
@@ -569,8 +559,7 @@ def _load_default_styles() -> list:
 
 
 def _get_label_list(length: int, label: str) -> list[str]:
-    """
-    Get a list with length times the label.
+    """Get a list with length times the label.
 
     Parameters
     ----------
@@ -582,7 +571,7 @@ def _get_label_list(length: int, label: str) -> list[str]:
     Returns
     -------
     list[str]
-        Length times label as a list. E. g.: ['label', 'label', 'label'].
+        Length times label as a list. E.g.: ['label', 'label', 'label'].
 
     """
     labels = [label] * length
@@ -591,10 +580,9 @@ def _get_label_list(length: int, label: str) -> list[str]:
 
 
 def _get_axis_limit(
-    data_axis: np.ndarray, ax_lim: list, percentage_mode: bool
+    data_axis: np.ndarray, ax_lim: list | str, percentage_mode: bool
 ) -> tuple[float, float]:
-    """
-    Get the plot limits for a given data axis.
+    """Get the plot limits for a given data axis.
 
     If no limit is specified, the minimal and maximal value of the given
     dataset will be taken.
@@ -603,12 +591,13 @@ def _get_axis_limit(
     ----------
     data_axis : np.ndarray
         Data vector for an axis.
-    ax_lim : list
-        Limits for the data vector taken from a profile.
+    ax_lim : list or str
+        Limits for the data vector taken from a profile. Empty string means
+        no limit is specified.
     percentage_mode : bool
         If True, the ax.lim will be handled as a percentage in context to the
         lowest and highest values with respect to the given axis.
-        E. g.: x-vector with values [0, 200], ax_lim: [-2., 2.] -> [4, 204].
+        E.g.: x-vector with values [0, 200], ax_lim: [-2., 2.] -> [4, 204].
 
     Returns
     -------

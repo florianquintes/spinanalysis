@@ -53,8 +53,8 @@ def simulate(
     SimOpt : SimulationOptions
         Simulation options from :mod:`spinanalysis.epr`.
 
-    Side Effects
-    ------------
+    Notes
+    -----
     ``SimOpt.mode`` is set to ``"simulation"`` before dispatch.  For the
     ``teacups`` routine with ``eigval_mode`` *False* the mode is overridden to
     ``"fitting"`` because teacups internally switches between the two.
@@ -132,8 +132,8 @@ def optimize(
     Var : Variation
         Variation parameters from :mod:`spinanalysis.epr`.
 
-    Side Effects
-    ------------
+    Notes
+    -----
     ``SimOpt.mode`` is set to ``"fitting"`` before dispatch.
 
     Raises

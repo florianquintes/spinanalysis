@@ -78,6 +78,18 @@ def _resolve_output_dir(path: str | Path | None) -> Path:
     If *path* is given, use it (creating it if needed).  Otherwise
     create ``spinanalysis_YYYY-MM-DD_N`` in the current working
     directory, where *N* is the lowest available positive integer.
+
+    Parameters
+    ----------
+    path : str or pathlib.Path, optional
+        Directory path to use. If ``None``, a new directory is created
+        in the current working directory.
+
+    Returns
+    -------
+    pathlib.Path
+        The resolved output directory.
+
     """
     if path is not None:
         out_dir = Path(path)
@@ -110,8 +122,7 @@ def save_plot(
     path: str | Path | None = None,
     **kwargs: Any,
 ) -> None:
-    """
-    Save the figures plotted with matplotlib.
+    """Save the figures plotted with matplotlib.
 
     Parameters
     ----------
@@ -121,15 +132,11 @@ def save_plot(
     *figures : object
         Matplotlib figure object(s).
     path : str or pathlib.Path, optional
-        Directory where the figures will be stored. The default is
+        Directory where the figures will be stored, default is
         ``~/spinanalysis/plots/``.
-    **kwargs : Any
+    **kwargs
         Other keyword arguments. Will be passed to ``plt.savefig()``.
         See matplotlib documentation for further information.
-
-    Returns
-    -------
-    None
 
     """
 
@@ -166,9 +173,9 @@ def save_simulation(
     *data: np.ndarray,
     path: str | Path | None = None,
 ) -> None:
-    """
-    Save the simulated data at ``[path]/[name]/[files]`` using
-    :func:`numpy.savetxt`.
+    """Save the simulated data at ``[path]/[name]/[files]``.
+
+    Uses :func:`numpy.savetxt`.
 
     Parameters
     ----------
@@ -178,17 +185,13 @@ def save_simulation(
         Arrays with the simulated data. If 2 arrays: ``x_axis``, ``int``;
         if 3 arrays: ``x_axis``, ``y_axis``, ``int``.
     path : str or pathlib.Path, optional
-        Directory where the data will be stored. The default is
+        Directory where the data will be stored, default is
         ``~/spinanalysis/simulations/``.
 
     Raises
     ------
     ValueError
         If the number of data arrays is not 2 or 3.
-
-    Returns
-    -------
-    None
 
     """
 
@@ -225,9 +228,9 @@ def write_out_file(
     current_best: bool = False,
     path: str | Path | None = None,
 ) -> Path:
-    """
-    Write an output file with all data from ``Sys``, ``Exp``, ``SimOpt``
-    and, if running in optimization mode, ``FitOpt``.
+    """Write an output file with all data from ``Sys``, ``Exp``, ``SimOpt``.
+
+    If running in optimization mode, ``FitOpt`` data is also written.
 
     Parameters
     ----------
@@ -243,12 +246,12 @@ def write_out_file(
     current_best : bool, optional
         ``True`` if *Sys* and *Exp* are the current best while running
         in optimization mode.  ``False`` if they are the final result or
-        in normal simulation mode.  The default is ``False``.
+        in normal simulation mode, default is ``False``.
     path : str or pathlib.Path, optional
-        Directory where the output file will be stored.  If ``None``
-        (the default), a new folder ``spinanalysis_YYYY-MM-DD_N`` is
-        created in the current working directory, where *N* is the
-        lowest available positive integer.
+        Directory where the output file will be stored.  If ``None``,
+        default is to create a new folder ``spinanalysis_YYYY-MM-DD_N``
+        in the current working directory, where *N* is the lowest
+        available positive integer.
 
     Returns
     -------

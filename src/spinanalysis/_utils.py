@@ -8,12 +8,27 @@
 """
 
 
-def strtobool(val):
+def strtobool(val: str) -> int:
     """Convert a string representation of truth to true (1) or false (0).
 
-    True values are 'y', 'yes', 't', 'true', 'on', and '1'; false values
-    are 'n', 'no', 'f', 'false', 'off', and '0'.  Raises ValueError if
-    'val' is anything else.
+    True values are ``'y'``, ``'yes'``, ``'t'``, ``'true'``, ``'on'``, and
+    ``'1'``; false values are ``'n'``, ``'no'``, ``'f'``, ``'false'``,
+    ``'off'``, and ``'0'``.
+
+    Parameters
+    ----------
+    val : str
+        String to convert.
+
+    Raises
+    ------
+    ValueError
+        If *val* is not a recognised truth value.
+
+    Returns
+    -------
+    int
+        ``1`` for true, ``0`` for false.
     """
     val = val.lower()
     if val in ("y", "yes", "t", "true", "on", "1"):
@@ -21,4 +36,4 @@ def strtobool(val):
     elif val in ("n", "no", "f", "false", "off", "0"):
         return 0
     else:
-        raise ValueError(f"invalid truth value {val!r}")
+        raise ValueError("invalid truth value {0!r}".format(val))

@@ -19,18 +19,15 @@ from spinanalysis._utils import strtobool
 
 
 def get_full_path(directory_name: str, start_directory: str | None = None) -> str:
-    """
-    Get the full path of a given directory. Search starts at home directory.
+    """Get the full path of a given directory. Search starts at home directory.
 
     Parameters
     ----------
     directory_name : str
         Name of the directory whose path is to be found.
-    start_directory : str, optional
+    start_directory : str, optional, default is ``None``
         Directory at which the search starts. If given, the performance
-        increases very sharply. The default is None.
-
-        Recommended.
+        increases very sharply. Recommended.
 
     Raises
     ------
@@ -72,8 +69,14 @@ def get_full_path(directory_name: str, start_directory: str | None = None) -> st
 
 
 def _find_file(folder: Path, suffix: str) -> Path:
-    """
-    Find a single file in *folder* with the given *suffix* (case-insensitive).
+    """Find a single file in *folder* with the given *suffix* (case-insensitive).
+
+    Parameters
+    ----------
+    folder : Path
+        Directory to search for the file.
+    suffix : str
+        File suffix to match (case-insensitive).
 
     Raises
     ------
@@ -83,6 +86,7 @@ def _find_file(folder: Path, suffix: str) -> Path:
     Returns
     -------
     Path
+        Path of the first matching file found.
 
     """
     matches = [
@@ -98,8 +102,7 @@ def _find_file(folder: Path, suffix: str) -> Path:
 
 
 def get_DSC_parameters(path_to_folder: str) -> dict:
-    """
-    Extract all parameters from the DSC file.
+    """Extract all parameters from the DSC file.
 
     The DSC file is found by searching for ``*.DSC`` in the data folder
     rather than assuming it shares the folder's basename.
@@ -113,7 +116,7 @@ def get_DSC_parameters(path_to_folder: str) -> dict:
     -------
     dict
         Dictionary with all parameters. Keys are the same as in the .DSC
-        file. An additional key ``'path_to_folder'`` holds the folder path.
+        file. An additional key ``'path_to_folder'`` holds the folder path
 
     """
     folder = Path(path_to_folder)
@@ -141,8 +144,7 @@ def get_DSC_parameters(path_to_folder: str) -> dict:
 
 
 def convert_parameter_type(value: str) -> bool | int | float | str:
-    """
-    Convert the type of a given string to bool, int or float if possible.
+    """Convert the type of a given string to bool, int or float if possible.
 
     Parameters
     ----------
@@ -173,8 +175,7 @@ def convert_parameter_type(value: str) -> bool | int | float | str:
 
 
 def get_byte_mode(DSC_dict: dict, data_key: str = "IRFMT") -> str:
-    """
-    Get the used byte mode of the BRUKER BES3T data.
+    """Get the used byte mode of the BRUKER BES3T data.
 
     For more information about BES3T go to BRUKER website or easyspin on
     GitHub.
@@ -183,9 +184,8 @@ def get_byte_mode(DSC_dict: dict, data_key: str = "IRFMT") -> str:
     ----------
     DSC_dict : dict
         Dictionary with all parameters. Key is the same as in .DSC.
-    data_key : str, optional
+    data_key : str, optional, default is ``'IRFMT'``
         Key for the data array. Either 'IRFMT' or 'IIFMT'.
-        The default is 'IRFMT'.
 
     Raises
     ------
@@ -231,8 +231,7 @@ def get_byte_mode(DSC_dict: dict, data_key: str = "IRFMT") -> str:
 
 
 def load_data_vector(DSC_dict: dict) -> np.ndarray:
-    """
-    Load the binary intensity vector(s) from a BRUKER BES3T file.
+    """Load the binary intensity vector(s) from a BRUKER BES3T file.
 
     Parameters
     ----------
@@ -249,9 +248,10 @@ def load_data_vector(DSC_dict: dict) -> np.ndarray:
 
     Returns
     -------
-    np.ndarray, np.complex128
-        Real and imaginary part of the measured intensities. If no
-        imaginary part is measured, zeros will be inserted.
+    np.ndarray
+        Real and imaginary part of the measured intensities as a
+        ``np.complex128`` array. If no imaginary part is measured, zeros
+        will be inserted.
 
     """
     get_data_dimension(DSC_dict)
@@ -299,8 +299,7 @@ def load_data_vector(DSC_dict: dict) -> np.ndarray:
 
 
 def load_axis_vector(axis: str, DSC_dict: dict) -> np.ndarray:
-    """
-    Load the points of a given axis (x, y, z).
+    """Load the points of a given axis (x, y, z).
 
     Parameters
     ----------
@@ -357,8 +356,7 @@ def load_axis_vector(axis: str, DSC_dict: dict) -> np.ndarray:
 
 
 def get_data_dimension(DSC_dict: dict) -> None:
-    """
-    Determine the dimension of the measured spectrum (1d/2d/3d).
+    """Determine the dimension of the measured spectrum (1d/2d/3d).
 
     The result is stored in-place in *DSC_dict* under the key
     ``'dimensions'``.
@@ -367,10 +365,6 @@ def get_data_dimension(DSC_dict: dict) -> None:
     ----------
     DSC_dict : dict
         Dictionary with all parameters. Modified in place.
-
-    Returns
-    -------
-    None
 
     """
     dim = 0
@@ -383,9 +377,8 @@ def get_data_dimension(DSC_dict: dict) -> None:
 
 def load_epr_bruker_bes3t(
     folder: str, start_directory: str | None = None
-) -> tuple[tuple[np.ndarray, ...], np.ndarray]:
-    """
-    Load the whole dataset from a BRUKER BES3T data folder.
+) -> tuple[tuple[np.ndarray, np.ndarray, np.ndarray], np.ndarray]:
+    """Load the whole dataset from a BRUKER BES3T data folder.
 
     Time axis will be rescaled for OOP-ESEEM experiments if
     ``'FTAcqModeSlct'`` is ``'Tables'``.
@@ -394,26 +387,25 @@ def load_epr_bruker_bes3t(
     ----------
     folder : str
         Name of the data folder with the corresponding data files.
-    start_directory : str, optional
+    start_directory : str, optional, default is ``None``
         Give the path starting from your home folder which the search for
-        the data folder should start at. The default is None.
-        E. g.: data is at /home/cooluser/nice/data/this_folder
-        and you know, that all your data is in /home/cooluser/nice/\\*, then
-        you can give this start_directory with start_directory='nice'. So
-        the function call would be::
+        the data folder should start at. E. g.: data is at
+        /home/cooluser/nice/data/this_folder and you know, that all your
+        data is in /home/cooluser/nice/\\*, then you can give this
+        start_directory with start_directory='nice'. So the function call
+        would be::
 
             load_epr_bruker_bes3t(this_folder, 'nice')
 
-        Recommended:
-            Without this parameter, the search for the right folder will be
-            much longer.
+        Recommended: without this parameter, the search for the right
+        folder will be much longer.
 
     Returns
     -------
-    axis : tuple of np.ndarray
+    axis : tuple[np.ndarray, np.ndarray, np.ndarray]
         Tuple of all axis vectors as three numpy arrays (x, y, z).
-    data : np.ndarray, np.complex128
-        All intensity values as one complex numpy array.
+    data : np.ndarray
+        All intensity values as one complex ``np.complex128`` numpy array.
 
     """
     path = get_full_path(folder, start_directory)
@@ -436,35 +428,33 @@ def load_epr_bruker_bes3t(
 def load_epr_ESP_transient(
     folder: str, start_directory: str | None = None
 ) -> tuple[tuple[np.ndarray, np.ndarray], np.ndarray]:
-    """
-    Load data from a transient EPR experiment measured with ESP380E.
+    """Load data from a transient EPR experiment measured with ESP380E.
 
     Parameters
     ----------
     folder : str
         Name of the folder with all data files.
-    start_directory : str, optional
+    start_directory : str, optional, default is ``None``
         Give the path starting from your home folder which the search for
-        the data folder should start at. The default is None.
-        E. g.: data is at /home/cooluser/nice/data/this_folder
-        and you know, that all your data is in /home/cooluser/nice/\\*, then
-        you can give this start_directory with start_directory='nice'. So
-        the function call would be::
+        the data folder should start at. E. g.: data is at
+        /home/cooluser/nice/data/this_folder and you know, that all your
+        data is in /home/cooluser/nice/\\*, then you can give this
+        start_directory with start_directory='nice'. So the function call
+        would be::
 
             load_epr_ESP_transient(this_folder, 'nice')
 
-        Recommended:
-            Without this parameter, the search for the right folder will be
-            much longer.
+        Recommended: without this parameter, the search for the right
+        folder will be much longer.
 
     Returns
     -------
-    axis : tuple of np.ndarray
+    axis : tuple[np.ndarray, np.ndarray]
         Tuple with all axis vectors as two numpy arrays
         (magnetic_field, time).
-    data : np.ndarray, np.complex128
-        All intensity values as one complex numpy array. Imaginary part is
-        always 0.
+    data : np.ndarray
+        All intensity values as one complex ``np.complex128`` numpy array.
+        Imaginary part is always 0.
 
     """
     path = get_full_path(folder, start_directory)
@@ -487,9 +477,8 @@ def _validate_info_file(sections_found: set[str]) -> None:
         )
 
 
-def get_transient_info(fpath: str) -> tuple:
-    """
-    Get all information about the time axis and magnetic field vector from
+def get_transient_info(fpath: str) -> tuple[float | int | None, ...]:
+    """Get all information about the time axis and magnetic field vector from
     the .info file.
 
     The .info file is found by searching for ``*.info`` in the data folder.
@@ -507,7 +496,7 @@ def get_transient_info(fpath: str) -> tuple:
 
     Returns
     -------
-    tuple
+    tuple[float | int | None, ...]
         Contains (time_length, time_points, mag_field_start,
         mag_field_stop, mag_field_step).
 
@@ -600,8 +589,7 @@ def _discover_max_digits(folder: Path, basename: str) -> int:
 
 
 def get_transient_data(fpath: str) -> tuple[tuple[np.ndarray, np.ndarray], np.ndarray]:
-    """
-    Get the measured intensities of the whole spectrum from a transient
+    """Get the measured intensities of the whole spectrum from a transient
     EPR experiment measured by ESP380E.
 
     Parameters
@@ -611,11 +599,12 @@ def get_transient_data(fpath: str) -> tuple[tuple[np.ndarray, np.ndarray], np.nd
 
     Returns
     -------
-    axis : tuple of np.ndarray
+    axis : tuple[np.ndarray, np.ndarray]
         Tuple with all axis vectors as two numpy arrays
         (magnetic_field, time).
-    data : np.ndarray, np.complex128
-        Measured real intensities. All imaginary parts are zero.
+    data : np.ndarray
+        Measured real intensities as a ``np.complex128`` numpy array. All
+        imaginary parts are zero.
 
     """
     folder = Path(fpath)
@@ -664,9 +653,8 @@ def read_single_transient_file(
     filenumber: int,
     digits: int,
     time: bool = False,
-) -> tuple:
-    """
-    Get the measured intensities of a single field point from a transient
+) -> tuple[float, np.ndarray] | tuple[tuple[float, np.ndarray], np.ndarray]:
+    """Get the measured intensities of a single field point from a transient
     EPR experiment measured with ESP380E.
 
     Parameters
@@ -679,17 +667,19 @@ def read_single_transient_file(
         Number of the dataset for the magnetic field point, e. g. 3.
     digits : int
         Number of digits in the file-number suffix.
-    time : bool, optional
+    time : bool, optional, default is ``False``
         If True, the time axis will also be returned.
 
     Returns
     -------
     field : float
-        Magnetic field point.
-    time_axis : np.ndarray
-        Linear time axis. Only returned if *time* is True.
+        Magnetic field point. Returned alone with *data_vector* when
+        *time* is False.
     data_vector : np.ndarray
         Measured intensities.
+    time_axis : tuple[float, np.ndarray]
+        Tuple of (field, time_axis) returned with *data_vector* when
+        *time* is True.
 
     """
     folder = Path(fpath)
@@ -732,8 +722,7 @@ def read_single_transient_file(
 def load_simulated_data(
     folder: str, start_directory: str | None = None
 ) -> tuple[np.ndarray, ...]:
-    """
-    Load simulated data from spinanalysis or data saved with
+    """Load simulated data from spinanalysis or data saved with
     :func:`saving.save_simulation`. Uses :func:`numpy.loadtxt`.
 
     Parameters
@@ -741,19 +730,18 @@ def load_simulated_data(
     folder : str
         Name of the data folder with the corresponding data files
         (``x_axis.txt``, ``intensity.txt``, optionally ``y_axis.txt``).
-    start_directory : str, optional
+    start_directory : str, optional, default is ``None``
         Give the path starting from your home folder which the search for
-        the data folder should start at. The default is None.
-        E. g.: data is at /home/cooluser/nice/data/this_folder
-        and you know, that all your data is in /home/cooluser/nice/\\*, then
-        you can give this start_directory with start_directory='cooluser/nice'.
-        So the function call would be::
+        the data folder should start at. E. g.: data is at
+        /home/cooluser/nice/data/this_folder and you know, that all your
+        data is in /home/cooluser/nice/\\*, then you can give this
+        start_directory with start_directory='cooluser/nice'. So the
+        function call would be::
 
             load_simulated_data(this_folder, 'cooluser/nice')
 
-        Recommended:
-            Without this parameter, the search for the right folder
-            will be much longer.
+        Recommended: without this parameter, the search for the right
+        folder will be much longer.
 
     Returns
     -------
@@ -762,8 +750,9 @@ def load_simulated_data(
     y : np.ndarray
         Axis vector for the y-axis. Only returned if the simulated data
         is 2d.
-    intensity : np.ndarray, np.complex128
-        Simulated intensities. Either 1d or 2d.
+    intensity : np.ndarray
+        Simulated intensities as a ``np.complex128`` numpy array. Either
+        1d or 2d.
 
     """
     path = get_full_path(folder, start_directory)
@@ -789,8 +778,7 @@ def load_matlab(
     field: str = "field",
     signal: str = "signal",
 ) -> tuple[tuple[np.ndarray, np.ndarray], np.ndarray]:
-    """
-    Load EPR data from a MATLAB data file (``.mat``).
+    """Load EPR data from a MATLAB data file (``.mat``).
 
     The *folder* argument is the name of the directory containing the
     ``.mat`` file. The first ``.mat`` file found in the directory is
@@ -800,24 +788,24 @@ def load_matlab(
     ----------
     folder : str
         Name of the data folder with the ``.mat`` file.
-    start_directory : str, optional
+    start_directory : str, optional, default is ``None``
         Give the path starting from your home folder which the search for
-        the data folder should start at. The default is None.
-        E. g.: data is at /home/cooluser/nice/data/this_folder
-        and you know, that all your data is in /home/cooluser/nice/\\*, then
-        you can give this start_directory with start_directory='cooluser/nice'.
-        So the function call would be::
+        the data folder should start at. E. g.: data is at
+        /home/cooluser/nice/data/this_folder and you know, that all your
+        data is in /home/cooluser/nice/\\*, then you can give this
+        start_directory with start_directory='cooluser/nice'. So the
+        function call would be::
 
             load_matlab(this_folder, 'cooluser/nice')
 
-    field : str, optional
-        Name of the field array in the .mat file. The default is 'field'.
-    signal : str, optional
-        Name of the signal array in the .mat file. The default is 'signal'.
+    field : str, optional, default is ``'field'``
+        Name of the field array in the .mat file.
+    signal : str, optional, default is ``'signal'``
+        Name of the signal array in the .mat file.
 
     Returns
     -------
-    axis : tuple of np.ndarray
+    axis : tuple[np.ndarray, np.ndarray]
         Tuple of np.ndarray containing the x and y axis.
     data : np.ndarray
         np.ndarray with the measured intensities.
@@ -839,8 +827,7 @@ def load_matlab(
 def load_txt(
     folder: str, start_directory: str | None = None
 ) -> tuple[tuple[np.ndarray, np.ndarray], np.ndarray]:
-    """
-    Load EPR data from a ``.txt`` file.
+    """Load EPR data from a ``.txt`` file.
 
     The *folder* argument is the name of the directory containing the
     ``.txt`` file. The first ``.txt`` file found in the directory is
@@ -850,19 +837,19 @@ def load_txt(
     ----------
     folder : str
         Name of the data folder with the ``.txt`` file.
-    start_directory : str, optional
+    start_directory : str, optional, default is ``None``
         Give the path starting from your home folder which the search for
-        the data folder should start at. The default is None.
-        E. g.: data is at /home/cooluser/nice/data/this_folder
-        and you know, that all your data is in /home/cooluser/nice/\\*, then
-        you can give this start_directory with start_directory='cooluser/nice'.
-        So the function call would be::
+        the data folder should start at. E. g.: data is at
+        /home/cooluser/nice/data/this_folder and you know, that all your
+        data is in /home/cooluser/nice/\\*, then you can give this
+        start_directory with start_directory='cooluser/nice'. So the
+        function call would be::
 
             load_txt(this_folder, 'cooluser/nice')
 
     Returns
     -------
-    axis : tuple of np.ndarray
+    axis : tuple[np.ndarray, np.ndarray]
         Tuple of np.ndarray containing the x and y axis.
     data : np.ndarray
         np.ndarray with the measured intensities.

@@ -38,16 +38,15 @@ def plot_callback(
     Var: Any = None,
     **_kwargs,
 ) -> None:
-    """
-    Plot the current optimization state in the graphical user interface.
+    """Plot the current optimization state in the graphical user interface.
 
     Parameters
     ----------
-    xk : np.array
+    xk : np.ndarray
         Current best guess vector.
-    *_ : arbitrary
-        Unused arguments passed by some optimization routines to the callback
-        function.
+    *_
+        Unused positional arguments passed by some optimization routines to the
+        callback function.
     Sys : object
         Reference spin-system object.
     Exp : object
@@ -58,19 +57,14 @@ def plot_callback(
         Variation object describing the fitted parameters.
     FitOpt : object
         Fitting options object.
-    *_kwargs : arbitrary
+    **_kwargs
         Unused keyword arguments passed by some optimization routines to the
         callback function.
 
     Raises
     ------
     ValueError
-        Raised if the selected simulation routine is unknown.
-
-    Returns
-    -------
-    None.
-
+        If the selected simulation routine is unknown.
     """
     current_Sys = guess2Sys(xk, Sys, Var, SimOpt)
     SimOpt.mode = "simulation"
@@ -111,14 +105,13 @@ def plot_callback(
 
 
 def spinanalysis2scipy(x: NDArray[np.float64], *objects: Any) -> float:
-    """
-    Objective function for the scipy.optimize interface.
+    """Objective function for the scipy.optimize interface.
 
     Used by scipy.optimize routines.
 
     Parameters
     ----------
-    x : np.array
+    x : np.ndarray
         Current parameter vector of the optimizer.
     *objects : object
         Additional objects required for the simulation and fitting interface.
@@ -126,13 +119,12 @@ def spinanalysis2scipy(x: NDArray[np.float64], *objects: Any) -> float:
     Raises
     ------
     ValueError
-        Raised if the selected simulation routine is unknown.
+        If the selected simulation routine is unknown.
 
     Returns
     -------
     error : float
         Sum of squared residuals between experimental and simulated data.
-
     """
     Sys_def, Exp, SimOpt, Var = objects
 
@@ -160,14 +152,13 @@ def spinanalysis2scipy(x: NDArray[np.float64], *objects: Any) -> float:
 
 
 def spinanalysis2scipy_singlecore(x: NDArray[np.float64], *objects: Any) -> float:
-    """
-    Objective function for the scipy.optimize interface.
+    """Objective function for the scipy.optimize interface.
 
     Used by scipy.optimize.differential_evolution.
 
     Parameters
     ----------
-    x : np.array
+    x : np.ndarray
         Current parameter vector of the optimizer.
     *objects : object
         Additional objects required for the simulation and fitting interface.
@@ -175,13 +166,12 @@ def spinanalysis2scipy_singlecore(x: NDArray[np.float64], *objects: Any) -> floa
     Raises
     ------
     ValueError
-        Raised if the selected simulation routine is unknown.
+        If the selected simulation routine is unknown.
 
     Returns
     -------
     error : float
         Sum of squared residuals between experimental and simulated data.
-
     """
     Sys_def, Exp, SimOpt, Var = objects
 
@@ -211,8 +201,7 @@ def spinanalysis2scipy_singlecore(x: NDArray[np.float64], *objects: Any) -> floa
 def spinanalysis2scipy_res(
     x: NDArray[np.float64], *objects: Any
 ) -> NDArray[np.float64]:
-    """
-    Residual function for scipy.optimize least-squares algorithms.
+    """Residual function for scipy.optimize least-squares algorithms.
 
     Returns the absolute residuals between simulation and experiment.
 
@@ -220,7 +209,7 @@ def spinanalysis2scipy_res(
 
     Parameters
     ----------
-    x : np.array
+    x : np.ndarray
         Current parameter vector of the optimizer.
     *objects : object
         Additional objects required for the simulation and fitting interface.
@@ -228,13 +217,12 @@ def spinanalysis2scipy_res(
     Raises
     ------
     ValueError
-        Raised if the selected simulation routine is unknown.
+        If the selected simulation routine is unknown.
 
     Returns
     -------
-    error : np.array
+    error : np.ndarray
         One-dimensional array containing the absolute residuals.
-
     """
     Sys_def, Exp, SimOpt, Var = objects
 
@@ -262,12 +250,11 @@ def spinanalysis2scipy_res(
 
 
 def guess2Sys(x: NDArray[np.float64], Sys: Any, Var: Any, SimOpt: Any) -> Any:
-    """
-    Create a spin-system object from the current optimizer vector.
+    """Create a spin-system object from the current optimizer vector.
 
     Parameters
     ----------
-    x : np.array
+    x : np.ndarray
         Current parameter vector of the optimizer.
     Sys : object
         Reference spin-system object.
@@ -280,7 +267,6 @@ def guess2Sys(x: NDArray[np.float64], Sys: Any, Var: Any, SimOpt: Any) -> Any:
     -------
     Sys_mod : object
         Spin-system object corresponding to the current optimizer vector.
-
     """
     Sys_mod = deepcopy(Sys)
 
@@ -337,19 +323,17 @@ def guess2Sys(x: NDArray[np.float64], Sys: Any, Var: Any, SimOpt: Any) -> Any:
 def get_random_x0(
     boundaries: Sequence[tuple[float, float]],
 ) -> NDArray[np.float64]:
-    """
-    Generate a random initial guess within the variation boundaries.
+    """Generate a random initial guess within the variation boundaries.
 
     Parameters
     ----------
-    boundaries : list
+    boundaries : Sequence[tuple[float, float]]
         Lower and upper bounds of the fitted parameters.
 
     Returns
     -------
-    x0 : np.array
+    x0 : np.ndarray
         Randomly generated initial parameter vector.
-
     """
     x0 = np.empty(len(boundaries))
 
@@ -360,8 +344,7 @@ def get_random_x0(
 
 
 def dualannealing(Sys: Any, Exp: Any, SimOpt: Any, FitOpt: Any, Var: Any) -> Any:
-    """
-    Run scipy.optimize.dual_annealing for global optimization.
+    """Run scipy.optimize.dual_annealing for global optimization.
 
     Parameters
     ----------
@@ -380,7 +363,6 @@ def dualannealing(Sys: Any, Exp: Any, SimOpt: Any, FitOpt: Any, Var: Any) -> Any
     -------
     best_Sys : object
         Best spin-system object found by the optimizer.
-
     """
     Var.get_boundaries(Sys)
 
@@ -439,8 +421,7 @@ def dualannealing(Sys: Any, Exp: Any, SimOpt: Any, FitOpt: Any, Var: Any) -> Any
 
 
 def shgo(Sys: Any, Exp: Any, SimOpt: Any, FitOpt: Any, Var: Any) -> Any:
-    """
-    Run scipy.optimize.shgo for global optimization.
+    """Run scipy.optimize.shgo for global optimization.
 
     Parameters
     ----------
@@ -459,7 +440,6 @@ def shgo(Sys: Any, Exp: Any, SimOpt: Any, FitOpt: Any, Var: Any) -> Any:
     -------
     best_Sys : object
         Best spin-system object found by the optimizer.
-
     """
     Var.get_boundaries(Sys)
 
@@ -528,8 +508,7 @@ def shgo(Sys: Any, Exp: Any, SimOpt: Any, FitOpt: Any, Var: Any) -> Any:
 def differential_evolution(
     Sys: Any, Exp: Any, SimOpt: Any, FitOpt: Any, Var: Any
 ) -> Any:
-    """
-    Run scipy.optimize.differential_evolution for global optimization.
+    """Run scipy.optimize.differential_evolution for global optimization.
 
     Parameters
     ----------
@@ -548,7 +527,6 @@ def differential_evolution(
     -------
     best_Sys : object
         Best spin-system object found by the optimizer.
-
     """
     Var.get_boundaries(Sys)
 
@@ -616,8 +594,7 @@ def differential_evolution(
 
 
 def basinhopping(Sys: Any, Exp: Any, SimOpt: Any, FitOpt: Any, Var: Any) -> Any:
-    """
-    Run scipy.optimize.basinhopping for global optimization.
+    """Run scipy.optimize.basinhopping for global optimization.
 
     Parameters
     ----------
@@ -636,7 +613,6 @@ def basinhopping(Sys: Any, Exp: Any, SimOpt: Any, FitOpt: Any, Var: Any) -> Any:
     -------
     best_Sys : object
         Best spin-system object found by the optimizer.
-
     """
     Var.get_boundaries(Sys)
 
@@ -711,8 +687,7 @@ def basinhopping(Sys: Any, Exp: Any, SimOpt: Any, FitOpt: Any, Var: Any) -> Any:
 
 
 def least_squares(Sys: Any, Exp: Any, SimOpt: Any, FitOpt: Any, Var: Any) -> Any:
-    """
-    Run scipy.optimize.least_squares for nonlinear optimization.
+    """Run scipy.optimize.least_squares for nonlinear optimization.
 
     Parameters
     ----------
@@ -731,7 +706,6 @@ def least_squares(Sys: Any, Exp: Any, SimOpt: Any, FitOpt: Any, Var: Any) -> Any
     -------
     best_Sys : object
         Best spin-system object found by the optimizer.
-
     """
     Var.get_boundaries(Sys)
 
@@ -792,8 +766,7 @@ def least_squares(Sys: Any, Exp: Any, SimOpt: Any, FitOpt: Any, Var: Any) -> Any
 
 
 def minimize(Sys: Any, Exp: Any, SimOpt: Any, FitOpt: Any, Var: Any) -> Any:
-    """
-    Run scipy.optimize.minimize for local optimization.
+    """Run scipy.optimize.minimize for local optimization.
 
     Minimize provides multiple local optimization routines such as Nelder-Mead,
     COBYLA, Powell, CG and so on.
@@ -817,7 +790,6 @@ def minimize(Sys: Any, Exp: Any, SimOpt: Any, FitOpt: Any, Var: Any) -> Any:
         Best spin-system object found by the optimizer.
     results : str, optional
         Results of the scipy optimization. Only for the GUI.
-
     """
     Var.get_boundaries(Sys)
 
@@ -855,14 +827,13 @@ def minimize(Sys: Any, Exp: Any, SimOpt: Any, FitOpt: Any, Var: Any) -> Any:
 
 
 class BasinhoppingBounds:
-    """
-    Acceptance test for the scipy.optimize.basinhopping algorithm.
+    """Acceptance test for the scipy.optimize.basinhopping algorithm.
 
     Attributes
     ----------
-    xmin : np.array
+    xmin : np.ndarray
         Lower bounds for the varied parameters.
-    xmax : np.array
+    xmax : np.ndarray
         Upper bounds for the varied parameters.
     Var : object
         Object of class Variation from the epr_setup module.
@@ -871,7 +842,6 @@ class BasinhoppingBounds:
     -------
     __call__(**kwargs)
         Check if the current guess is within the bounds.
-
     """
 
     def __init__(self, Var: Any) -> None:
@@ -880,19 +850,17 @@ class BasinhoppingBounds:
         return None
 
     def __call__(self, **kwargs) -> bool:
-        """
-        Check if the current guess is within the bounds.
+        """Check if the current guess is within the bounds.
 
         Parameters
         ----------
-        **kwargs : list
+        **kwargs
             Varied parameters.
 
         Returns
         -------
         bool
             True if the guess is within the bounds, False if not.
-
         """
         x = kwargs["x_new"]
         test_min = bool(np.all(x >= self.xmin))
@@ -902,8 +870,7 @@ class BasinhoppingBounds:
 
 
 class BasinhoppingStep:
-    """
-    Step generator for the scipy.optimize.basinhopping algorithm.
+    """Step generator for the scipy.optimize.basinhopping algorithm.
 
     Attributes
     ----------
@@ -913,13 +880,13 @@ class BasinhoppingStep:
         NumPy random number generator.
     Var : object
         Object of class Variation from the epr_setup module.
-    bounds : np.array
+    bounds : np.ndarray
         Parameter boundaries as a two-dimensional array.
-    lb : np.array
+    lb : np.ndarray
         Lower bounds.
-    ub : np.array
+    ub : np.ndarray
         Upper bounds.
-    var_range : np.array
+    var_range : np.ndarray
         Half the difference between lower and upper bounds.
     dim_var : int
         Number of variables.
@@ -928,7 +895,6 @@ class BasinhoppingStep:
     -------
     __call__(x)
         Generate the next random step.
-
     """
 
     def __init__(self, Var: Any, stepsize: float = 0.75) -> None:
@@ -943,19 +909,17 @@ class BasinhoppingStep:
         return None
 
     def __call__(self, x: NDArray[np.float64]) -> NDArray[np.float64]:
-        """
-        Generate the next random step.
+        """Generate the next random step.
 
         Parameters
         ----------
-        x : np.array
+        x : np.ndarray
             Current guess.
 
         Returns
         -------
-        x : np.array
+        x : np.ndarray
             Current parameter vector after applying a random step.
-
         """
         x = self.check_guess(x)
 
@@ -978,21 +942,19 @@ class BasinhoppingStep:
         return x
 
     def check_guess(self, x: NDArray[np.float64]) -> NDArray[np.float64]:
-        """
-        Check whether the current parameter vector is within the bounds.
+        """Check whether the current parameter vector is within the bounds.
 
         Out-of-bound values are replaced by randomly generated values inside the bounds.
 
         Parameters
         ----------
-        x : np.array
+        x : np.ndarray
             Current guess.
 
         Returns
         -------
-        x : np.array
+        x : np.ndarray
             Current guess.
-
         """
         choose_outliers = ~((x >= self.lb) & (x <= self.ub))
 
@@ -1004,8 +966,7 @@ class BasinhoppingStep:
 
 
 class BasinhoppingStatus:
-    """
-    Status callback for the scipy.optimize.basinhopping algorithm.
+    """Status callback for the scipy.optimize.basinhopping algorithm.
 
     Attributes
     ----------
@@ -1017,16 +978,15 @@ class BasinhoppingStatus:
         Variation object containing the parameter ranges.
     verbose : bool, optional
         Controls whether status information is printed.
-    xmin : np.array
+    xmin : np.ndarray
         Lower bounds for the varied parameters.
-    xmax : np.array
+    xmax : np.ndarray
         Upper bounds for the varied parameters.
 
     Methods
     -------
     __call__(x, value, accepted)
         Print status information.
-
     """
 
     def __init__(self, Sys: Any, Var: Any, verbose: bool = False) -> None:
@@ -1043,23 +1003,16 @@ class BasinhoppingStatus:
         return None
 
     def __call__(self, x: NDArray[np.float64], value: float, accepted: int) -> None:
-        """
-        Print status information about the basinhopping progress.
+        """Print status information about the basinhopping progress.
 
         Parameters
         ----------
-        x : np.array
+        x : np.ndarray
             Current guess.
         value : float
             Objective-function value of the current parameter vector.
         accepted : int
             Acceptance status returned by the basinhopping algorithm.
-
-        Returns
-        -------
-        None
-            No return value.
-
         """
         mes_1 = "The current minimum with an error of {:.4f} ".format(value)
         if self.check_bounds(x):
@@ -1081,19 +1034,17 @@ class BasinhoppingStatus:
         return None
 
     def check_bounds(self, x: NDArray[np.float64]) -> bool:
-        """
-        Check if the current guess is within the bounds.
+        """Check if the current guess is within the bounds.
 
         Parameters
         ----------
-        x : np.array
+        x : np.ndarray
             Current guess.
 
         Returns
         -------
         bool
             True if the guess is within the bounds, False if not.
-
         """
         test_min = bool(np.all(x >= self.xmin))
         test_max = bool(np.all(x <= self.xmax))
@@ -1101,19 +1052,12 @@ class BasinhoppingStatus:
         return test_min and test_max
 
     def save_best(self, x: NDArray[np.float64]) -> None:
-        """
-        Create a spin-system object from the best parameter vector and save it.
+        """Create a spin-system object from the best parameter vector and save it.
 
         Parameters
         ----------
-        x : np.array
+        x : np.ndarray
             Current guess.
-
-        Returns
-        -------
-        None
-            No return value.
-
         """
         Sys = guess2Sys(x, self.def_Sys, self.Var, self.SimOpt)
         Sys.save_spinsystem("basinhopping_current_best")
